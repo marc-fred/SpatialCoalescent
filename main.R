@@ -6,50 +6,39 @@ source("MutationFunctions.R")
 source("CoalescentFunctions.R")
 source("PriorFunctions.R")
 source("MarkovProcess.R")
-source("GeneticDataSimulation.R")
-source("SummaryStats.R")
-source("PostAnalysis.R")
 
 library(raster)
-library(abc)
-library(parallel)
 
 ###### Environmental data :
 
-load("bio.RData")
+environmentVariableRaster <- raster(matrix(data = sample(1:100, 100), ncol = 10),
+                              xmn = 40,
+                              xmx = 50,
+                              ymn = 0,
+                              ymx = 10,
+                              crs = "+proj=longlat +datum=WGS84")
+geographicDistanceMatrix <- distanceMatrixFromRaster(object = environmentVariableRaster)/1000
+environmentVariableMatrix <- as.matrix(environmentVariableRaster)
 
-###### Genetic data :
+###### Position data :
+dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 10))
 
-# load fake GeneticData 
-load("dataSet.RData")
-
-# genetic value of the ancestor
-ancestor <- 200
-
+###### Locus information :
+nbLocus <- 2
 # assuming we have the step values for each locus
-load("steps.RData")
+steps <- c(2,3)
+
 
 ###### Model :
 
-load("ParamList.RData")
-
+# Parameters : 
+# dispersion : gaussian(0, sigma)
+theta_sigma <- 1
+# niche : constant(Y)
+theta_Y <- 2
+# mutation rate
+theta_rate <- 10^-5
 
 ##### 
 # launch simulations
-simSpatialCoal(nbSimul=1000000, ParamList=ParamList, rasterStack=bio, nicheMeth = "arithmetic", GeneticData=dataSet, initialGenetValue=ancestor,
-               stepValueOfLoci= steps, cores=detectCores())
-
-# analyse the results, computes summary statistics
-pcaRes <- pca4abc(GeneticData = genetic, ParamList = ParamList, distanceMethod = "DeltaMuDistance", path = paste0(getwd(),"/SimulResults"))
-
-# performs cross validation
-cv.rej <- cv4abc(param = pcaRes[[3]], sumstat=pcaRes[[2]], nval=500, tols=c(0.01, 0.1), method="rejection")
-plot(cv.rej)
-
-# performs abc analysis
-result <- abc(target = pcaRes[[1]], 
-              param = pcaRes[[3]], 
-              sumstat = pcaRes[[2]], 
-              tol=0.01, 
-              method="neuralnet" )
-hist(result)
+simulateSpatialCoalescent(theta_sigma, theta_Y, theta_rate, environmentVariableMatrix, nbLocus, dataCoord)
