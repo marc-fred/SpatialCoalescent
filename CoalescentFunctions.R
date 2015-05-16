@@ -1,4 +1,4 @@
-simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, nbLocus, dataCoord){
+simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, dataCoord){
   
 }
  
@@ -7,29 +7,21 @@ if(anyNA(dataCoord)){
 }
   
 # Initialize the final genetic results table
-        
 geneticResults <- matrix(data=NA, nrow=nrow(GeneticData), ncol=numberOfLoci)
 
-# Construct carrying capacity matrix :
-kMatrix <- apply(envMatrix, c(1,2), constant, Y = theta_Y_k)
-kMatrix <- round(kMatrix)
-
-# Prevent impossible transition :
-if( sum(kMatrix) <= 0){
-  stop(paste("The parameters values for niche models led to null carrying capacity over all cells of the landscape :
-             coalescence is impossible to simulate"))
-}
-
-# Constructgrowth rate matrix :
-rMatrix <- apply(envMatrix, c(1,2), constant, Y = theta_Y_r)
-
-# Prevent impossible transition :
-if( sum(rMatrix) <= 0){
-  stop(paste("The parameters values for niche models led to null growth rate over all cells of the landscape : 
-             coalescence is impossible to simulate"))
-}
+# Create r and K matrix :
+kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
+rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
 
 # Construct migration matrix :
+constructMigrationMatrix<- function(dist, param){
+  kernel <- apply(dist, c(1,2), gaussian, sigma = param)
+  migrationRates <- kernel/rowSums(kernel)
+  return(migrationRates)
+}
+migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
+
+
 kernelMatrix <- computeDispersionKernel(dispersionFunction = getFunctionDispersion(ParamList),
                                         distanceMatrix = distMat, 
                                         args=getArgsListDispersion(simulation = x, ParamList = ParamList))
