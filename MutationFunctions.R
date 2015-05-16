@@ -16,64 +16,6 @@ stepWiseMutationModel <- function(mutations)
   # stepWiseMutationModel(mutations=c(2,3))
 }
 
-twoPhasesModel <- function(mutations=3,p=.5,sigma2=4)
-{
-  # Simulates a change in the genetic value depending on number of mutations
-  # assuming two phases mutation model
-  #
-  # Args: 
-  #   mutations= number of mutations
-  #
-  # Value
-  #   The resultant in microsatellite repetition number using binomial rules
-  # 
-  # Example:
-  # twoPhasesModel(5)
-  #
-  # Estimate parameter of geometric mutation size
-  p_loi_geometrique = ((1+4*sigma2)^.5-1)/(2*sigma2)
-  # Sample number of stepwise mutations among mutations from binomial law
-  NStepw <- rbinom(length(mutations),mutations,prob=c(p,1-p))
-  # Estimate pascal triangle resultant of stepwise mutations 
-  resultantStepw <- 2*rbinom(n = length(mutations), size = NStepw, prob = 0.5) - NStepw
-  # Estimate number of geometric mutations having positive effect on microsatallite size
-  NGeomPos <- rbinom(length(mutations),mutations-NStepw,.5)
-  # Estimate resultant geometric mutation changes for positive and negative effects
-  resultantGeom <- rnbinom(length(mutations)*2,size=c(NGeomPos,mutations-NStepw-NGeomPos),p_loi_geometrique)
-  # note: warnings due to size=0 in rnbinom parameters
-  resultantGeom[is.na(resultantGeom)] <- 0
-  # Overall resultant is binomial plus geometric positive minus geometric negative
-  return(resultantStepw+c(diff(t(matrix(resultantGeom,nrow=length(mutations),ncol=2)))))
-}
-
-
-bigeometricModel <- function(mutations=3,sigma2=4)
-{
-  # Simulates a change in the genetic value depending on number of mutations
-  # assuming geopetric model
-  #
-  # Args: 
-  #   mutations= number of mutations
-  #
-  # Value
-  #   The resultant in microsatellite repetition number using binomial rules
-  # 
-  # Example:
-  # bigeometricModel(5)
-  #
-  # Estimate parameter of geometric mutation size
-  p_loi_geometrique = ((1+4*sigma2)^.5-1)/(2*sigma2)
-  # Estimate number of geometric mutations having positive effect on microsatallite size
-  NGeomPos <- rbinom(length(mutations),mutations,.5)
-  # Estimate resultant geometric mutation changes for positive and negative effects
-  resultantGeom <- rnbinom(length(mutations)*2,size=c(NGeomPos,mutations-NGeomPos),p_loi_geometrique)
-  # note: warnings due to size=0 in rnbinom parameters
-  resultantGeom[is.na(resultantGeom)] <- 0
-  # Overall resultant is binomial plus geometric positive minus geometric negative
-  return(diff(t(matrix(resultantGeom,nrow=length(mutations),ncol=2))))
-}
-
-
 resultantFunction <- function(nbrMutations, stepValue, mutationModel, args){
   # Compute a resultant giving a vector of number of mutation
   #

@@ -1,31 +1,3 @@
-################### Formated Dispersion Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-fatTail1 <- function(x, alpha, beta){
-  # Computes a value for kernel dispersion using a fat tail model, according to the method in ?
-  #
-  # Args: 
-  #   x: the distance between two points
-  #   alpha : the first parameter of the dispersion law
-  #   beta: the second parameter of the dispersion law
-  #
-  # Returns:
-  #   The value of dispersion kernel for x
-  return(1/(1+1/alpha *x^beta))
-}
-
-fatTail2 <- function(x, sigma, gamma){
-  # Computes a value for kernel dispersion using a fat tail model, according to the method in ?
-  #
-  # Args: 
-  #   x: the distance between two points
-  #   sigma : the first parameter of the dispersion law
-  #   gamma: the second parameter of the dispersion law
-  #
-  # Returns:
-  #   The value of dispersion kernel for x
-  return(x^gamma*exp(-2*x/(sigma^0.5)))
-}
-
 gaussian <- function(x, sigma){
   # Computes a value for kernel dispersion using a gaussian model, i.e. a simple normal density distribution (sigma, mean=0)
   #
@@ -38,61 +10,27 @@ gaussian <- function(x, sigma){
   return(dnorm(x, mean = 0, sd = sigma, log = FALSE))
 }
 
-exponential <- function(x, sigma){
-  # Computes a value for kernel dispersion using an exponential model, at rate=1/sigma
+
+distanceMatrixFromRaster <- function(object){
+  # Computes a pairwise distance matrix from a raster object
   #
-  # Args: 
-  #   x: the distance between two points
-  #   sigma: the value of the standard deviation
+  # Args:
+  #   object: a raster object from which computes distances
   #
   # Returns:
-  #   The value of dispersion kernel for x
+  #   A matrix of distances in meters if a coordinate system is precised
   
-  return(dexp(x, rate = 1/sigma, log = FALSE))
+  # Extract coordinates from raster object
+  coords = xyFromCell(object = object, cell = 1:ncell(object), spatial=FALSE)
+  
+  # Compute distance matrix
+  dist <- apply(X = coords,
+                MARGIN = 1,
+                FUN = function(x){ values(distanceFromPoints(object = object[[1]], xy = x)) }
+  )
+  return(dist)
 }
 
-contiguous <- function(x, sigma, threshold){
-  # Computes a value for kernel dispersion using a contiguous model (near dispersal)
-  #
-  # Args: 
-  #   x: the distance between two points
-  #   sigma: ?
-  #   threshold : a trashold value
-  #
-  # Returns:
-  #   The value of dispersion kernel for x
-  return((x==0)*(1-sigma)+((x>0)-(x>1.4*threshold))*(sigma/2))
-}
-
-island <- function(x, sigma){
-  # Computes a value for kernel dispersion using an island model (probability 1-m to stay, else homogen dispersion)
-  #
-  # Args: 
-  #   x: the distance between two points
-  #   sigma: ?
-  #
-  # Returns:
-  #   The value of dispersion kernel for x
-  return((x==0)*(1-sigma)+(x>0)*(sigma))
-}
-
-gaussianMixedIsland <- function(x, sigma, gamma, normalizingFactor){
-  # Computes a value for kernel dispersion using a mixed model (gaussian/island)
-  #
-  # Args: 
-  #   x: the distance between two points
-  #   sigma: the standard deviation of the gaussian (normal) function
-  #   gamma: the parameter of the island model
-  #   normalizaingFactor: a factor in practice equal to the product of the migration matrix dimensions)
-  # Returns:
-  #   The value of dispersion kernel for x
-  (gamma+(1-gamma)*dnorm(x, mean = 0, sd = sigma, log = FALSE))/prod(dim(migration))
-}
-
-################# End of formated Dispersion Functions <<<<<<<<<<<<<<<<<<<<
-
-
-################# Applying Dispersion Functions to Objects >>>>>>>>>>>>>>>>>>
 dispersionFunctionForValue <- function(dispersionFunction, x, args){
   # Compute a dispersion kernel function over a single value
   #
@@ -128,25 +66,6 @@ dispersionFunctionForArray <- function(dispersionFunction, array, args){
   #                            args=list(sigma = 0.2, gamma=0.3 ))
 }
 
-distanceMatrixFromRaster <- function(object){
-  # Computes a pairwise distance matrix from a raster object
-  #
-  # Args:
-  #   object: a raster object from which computes distances
-  #
-  # Returns:
-  #   A matrix of distances in meters if a coordinate system is precised
-  
-  # Extract coordinates from raster object
-  coords = xyFromCell(object = object, cell = 1:ncell(object), spatial=FALSE)
-  
-  # Compute distance matrix
-  dist <- apply(X = coords,
-                MARGIN = 1,
-                FUN = function(x){ values(distanceFromPoints(object = object[[1]], xy = x)) }
-                )
-  return(dist)
-}
 
 computeDispersionKernel <- function(dispersionFunction, distanceMatrix, args){
   # Apply a dispersion kernel function over distances between the cells of a rasterLayer
