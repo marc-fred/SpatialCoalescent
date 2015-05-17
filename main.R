@@ -21,6 +21,7 @@ envMatrix <- as.matrix(environmentVariableRaster)
 
 ###### Position data :
 dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 3))
+localizationData <- cellFromXY(environmentVariableRaster, dataCoord)
 
 ###### Locus information :
 nbLocus <- 2
@@ -41,4 +42,4 @@ theta_rate <- 10^-5
 
 ##### 
 # launch simulations
-simulateSpatialCoalescent(theta_sigma, theta_Y, theta_rate, envMatrix, nbLocus, dataCoord)
+simulateSpatialCoalescent(theta_sigma, theta_Y, theta_rate, envMatrix, nbLocus, localizationData, steps)

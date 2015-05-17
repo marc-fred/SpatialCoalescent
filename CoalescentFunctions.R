@@ -1,13 +1,13 @@
 
 
-simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, dataCoord){
+simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, localizationData,steps){
   
-  if(anyNA(dataCoord)){ 
+  if(anyNA(localizationData)){ 
     stop("unknown localizations (NA) in simSpatialCoal. Please verify if genetic data coordinates are inside raster extent")
   }
   
   # Initialize the final genetic results table
-  geneticResults <- matrix(data=NA, nrow=nrow(dataCoord), ncol=nbLocus)
+  geneticResults <- matrix(data=NA, nrow=length(localizationData), ncol=nbLocus)
   
   kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
   rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
@@ -17,7 +17,7 @@ simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMat
   transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
   
   # Coalescence
-  spatialCoalescenceForMultipleLoci(transitionBackward, dataCoord, nbLocus)
+  spatialCoalescenceForMultipleLoci(transitionBackward, localizationData, nbLocus)
   
 
 }
@@ -33,36 +33,36 @@ spatialCoalescenceForMultipleLoci <- function(backMat, coord, rep){
   # Returns :
   #   A matrix of genetic differenciation
   list <- vapply(X = 1:rep, 
-                 FUN = spatialCoalescenceForOneLocus(backMat, coord), 
+                 FUN = spatialCoalescenceForOneLocus(backMat, coord, kMatrix, stepValue), 
                  FUN.VALUE = matrix(1, nrow = nrow(coord), ncol = rep),
                  backwardMatrix = backMat, 
                  coord = coord)
   return(list)
 }
 
-spatialCoalescenceForOneLocus <- function(backMat, coord){
+spatialCoalescenceForOneLocus <- function(backMat, coord, kMatrix, stepValue){
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coal <- coalescentCore(tipDemes = localizationData, 
                          transitionBackward = transitionBackward, 
-                         N = round(values(rasK)))
+                         N = round(as.vector(t(kMatrix))))
   
   # branches informations : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
-  branch <- computeCoalescentBranchesInformation()
+  branch <- computeCoalescentBranchesInformation(coal, stepValue = stepValue)
   
   # compute observed genetic values
   genet <- computePresentGeneticValues(branch)
   return(genet)
 }
 
-computeCoalescentBranchesInformation <- function(){
+computeCoalescentBranchesInformation <- function(coal, stepValue){
+  maxCoalEvent <- nrow(coal)
   # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
   
   # Fill child -> Parent information (decoupling children nodes)
   branchMat[,c(1,2)] <- rbind(coal[,c(2,4)] , coal[,c(3,4)])
   
-  # time of apparition of child node
   timeC <- vapply(X = branchMat[,1],
                   FUN = function(x, coal){
                     # find position in coalescence table
@@ -117,12 +117,12 @@ computeCoalescentBranchesInformation <- function(){
   # add resultant 
   branchMat[,5] <- resultantFunction(nbrMutations = branchMat[,4],
                                      stepValue = stepValue,
-                                     mutationModel = getFunctionMutation(ParamList = ParamList),
-                                     args = getArgsListMutation(simulation = x, ParamList = ParamList ))
+                                     mutationModel = stepWiseMutationModel,
+                                     args = c())
 }
 
   
-computePresentGeneticValues <- function(){
+computePresentGeneticValues <- function(branchMat, ){
   # add genetic values
   values <- rep(NA, times = numNodes + maxCoalEvent)
   values[length(values)] <- initialGenetValue
@@ -242,7 +242,7 @@ timeFinder <- function(x, coal){
   #   The time at which the node x appeared for the first time
   
   # find position in coalescence table
-  line <- which(coal[, 4] == x)
+  line <- which(coal[, 4] == id)
   if(length(line) == 1){
     # it's ok : get time
     t <- coal[line, 1] 
