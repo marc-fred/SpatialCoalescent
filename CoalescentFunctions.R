@@ -1,31 +1,25 @@
+
+
 simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, dataCoord){
   
+  if(anyNA(dataCoord)){ 
+    stop("unknown localizations (NA) in simSpatialCoal. Please verify if genetic data coordinates are inside raster extent")
+  }
+  
+  # Initialize the final genetic results table
+  geneticResults <- matrix(data=NA, nrow=nrow(dataCoord), ncol=nbLocus)
+  
+  kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
+  rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
+  migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
+  
+  # Get transition matrix :
+  transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
 }
  
-if(anyNA(dataCoord)){ 
-  stop("unknown localizations (NA) in simSpatialCoal. Please verify if genetic data coordinates are inside raster extent")
-}
-  
-# Initialize the final genetic results table
-geneticResults <- matrix(data=NA, nrow=nrow(dataCoord), ncol=nbLocus)
-
-# Create r and K matrix :
-kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
-rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
-
-# Construct migration matrix :
-
-migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
 
 
-kernelMatrix <- computeDispersionKernel(dispersionFunction = getFunctionDispersion(ParamList),
-                                        distanceMatrix = distMat, 
-                                        args=getArgsListDispersion(simulation = x, ParamList = ParamList))
 
-migrationMatrix <- migrationRateMatrix(kernelMatrix)
-
-# Get transition matrix :
-transitionBackward <- transitionMatrixBackward(r = values(rasR), K = values(rasK), migration = migrationMatrix)
 
 # number of  tipNodes
 numNodes <- length(localizationData)
