@@ -15,33 +15,47 @@ simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMat
   
   # Get transition matrix :
   transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
+  
+  # Coalescence
+  spatialCoalescenceForMultipleLoci(transitionBackward, dataCoord, nbLocus)
+  
+
 }
  
+spatialCoalescenceForMultipleLoci <- function(backMat, coord, rep){
+  # Repeat coalescence simulation, once for each locus
+  #
+  # Args :
+  #   backMat: the backward transition matrix
+  #   coord: the location of the sampled genes
+  #   rep: the number of loci
+  #
+  # Returns :
+  #   A matrix of genetic differenciation
+  list <- vapply(X = 1:rep, 
+                 FUN = spatialCoalescenceForOneLocus(backMat, coord), 
+                 FUN.VALUE = matrix(1, nrow = nrow(coord), ncol = rep),
+                 backwardMatrix = backMat, 
+                 coord = coord)
+  return(list)
+}
 
-
-
-
-# number of  tipNodes
-numNodes <- length(localizationData)
-
-# Compute the maximal number of coalescence events
-maxCoalEvent <- numNodes - 1
-
-### LOOP ON LOCI >>>>>>>>>>>>>>>>>
-
-for(locus in 1:numberOfLoci){ # locus=1
+spatialCoalescenceForOneLocus <- function(backMat, coord){
   
-  # Get the stepValue of the locus under concern
-  stepValue <- stepValueOfLoci[locus]
+  # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
+  coal <- coalescentCore(tipDemes = localizationData, 
+                         transitionBackward = transitionBackward, 
+                         N = round(values(rasK)))
   
-  # coalescent informations : (time of coalescence, Child 1, Child 2, Parent, Branch Length, mutation nbr, resultant, genet values)
-  coal <- matrix(data = NA, nrow = maxCoalEvent, ncol = 8)    
+  # branches informations : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
+  branch <- computeCoalescentBranchesInformation()
   
-  # launch the coalescent
-  coal[,c(1:4)] <- coalescentCore(tipDemes = localizationData, 
-                                  transitionBackward = transitionBackward, 
-                                  N = round(values(rasK)))
-  
+  # compute observed genetic values
+  genet <- computePresentGeneticValues(branch)
+  return(genet)
+}
+
+computeCoalescentBranchesInformation <- function(){
   # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
   
@@ -88,7 +102,7 @@ for(locus in 1:numberOfLoci){ # locus=1
                            please verify code")
                     }
                     return(t)
-                    },
+                  },
                   coal = coal,
                   FUN.VALUE = c(1))
   
@@ -105,7 +119,10 @@ for(locus in 1:numberOfLoci){ # locus=1
                                      stepValue = stepValue,
                                      mutationModel = getFunctionMutation(ParamList = ParamList),
                                      args = getArgsListMutation(simulation = x, ParamList = ParamList ))
+}
+
   
+computePresentGeneticValues <- function(){
   # add genetic values
   values <- rep(NA, times = numNodes + maxCoalEvent)
   values[length(values)] <- initialGenetValue
@@ -117,17 +134,8 @@ for(locus in 1:numberOfLoci){ # locus=1
     # find the genetic value of the parent
     values[n] <- values[branchMat[focal, 2]] +res
   }
-  
-  # Record the genetic data
-  geneticResults[,locus] <- values[1:numNodes]        
-  
-                  } # END OF LOOP OVER LOCI <<<<<<<<<<<<<
-
-# write results of genetic data 
-fname = paste(getwd(),"/SimulResults/", "Genetics_", x , ".txt", sep="")
-write.table(geneticResults, file=fname)
-        
-
+  return(values)
+}     
 
 
 coalescentCore <- function(tipDemes, transitionBackward, N){
@@ -248,56 +256,4 @@ timeFinder <- function(x, coal){
                                  please verify code")
   }
   return(t)
-}
-
-coalescent_2_newick <- function(coalescent)
-{
-  # coalescent_2_newick
-  # function that converts coalescent to newick format tree
-  # argument: coalescent list 
-  # value : newwick foramt tree
-  # 
-  # Example
-  # trB = matrix(c(1/4,1/2,1/4,0,1/3,1/3,1/6,1/6,1/2,1/4,1/8,1/8,1/5,2/5,2/5,0),nrow=4,ncol=4,byrow=TRUE)
-  # trF = matrix(c(1/4,1/2,1/2,1/8,1/3,1/3,1/6,1/6,1/2,1/4,1/8,1/8,0,0,2/5,0),nrow=4,ncol=4,byrow=TRUE)
-  # K=c(4,3,1,5)
-  # tipsDemes = c(1,4,2,2,1,1,2,3);names(tipsDemes)=1:8
-  # Coalescent = simul_coalescent_only(tipDemes=tipsDemes,transitionForward=trF,transitionBackward=trB,K=K)
-  # coalescent_2_newick(Coalescent)
-
-  tree=paste(" ",coalescent[[1]][[length(coalescent)]]$new_node," ",sep="")
-  for (i in length(coalescent):1)
-  {
-    Time = coalescent[[1]][[i]]$time
-    coalesc <- as.character(coalescent[[1]][[i]]$coalescing)
-    tree <- str_replace(tree,paste(" ",as.character(coalescent[[1]][[i]]$new_node)," ",sep=""),paste(" ( ",paste(" ",coalesc," :",coalescent[[1]][[i]]$br_length,collapse=" ,",sep=""),") ",sep=""))
-  }
-  tree <- gsub(" ","",paste(tree,";",sep=""))
-  tree
-}
-
-
-plotCoalescentGenetics <- function(coalescent,genetic_table,with_landscape=FALSE,legend_right_move=-.2)
-{
-  # function that plots a coalecent, with tips demes as specific color
-  # argument: coalescent list 
-  #
-  # 
-  # Example
-  # trB = matrix(c(1/4,1/2,1/4,0,1/3,1/3,1/6,1/6,1/2,1/4,1/8,1/8,1/5,2/5,2/5,0),nrow=4,ncol=4,byrow=TRUE)
-  # trF = matrix(c(1/4,1/2,1/2,1/8,1/3,1/3,1/6,1/6,1/2,1/4,1/8,1/8,0,0,2/5,0),nrow=4,ncol=4,byrow=TRUE)
-  # K=c(4,3,1,5)
-  # tipsDemes = c(1,4,2,2,1,1,2,3);names(tipsDemes)=1:8
-  # Coalescent = simul_coalescent_only(tipDemes=tipsDemes,transitionForward=trF,transitionBackward=trB,K=K)
-  # plotCoalesentGenetics(coalescent_2_newick(Coalescent),tipDemes,legend_right_move=.2)
-  
-  par(mfrow=c(1,1),oma=c(0,0,0,4),xpd=TRUE)
-  tipcells <- tipDemes[as.numeric(read.tree(text=coalescent_2_newick(coalescent))$tip.label)]
-   #tipcells <- geneticData$Cell_numbers[as.numeric(coalescent_2_phylog(coalescent)$tip.label)]
-  tipcols = rainbow(ncell(rasK))[tipcells]
-  phylog_format_tree <- coalescent_2_phylog(coalescent)
-  phylog_format_tree$tip.label <- paste(phylog_format_tree$tip.label,genetic_table[order(genetic_table$coalescing)[as.numeric(phylog_format_tree$tip.label)],"genetic_value"],sep=":")
-  plot(phylog_format_tree,direction="downward",tip.color=tipcols)
-  legend("topright", title="demes", cex=0.75, pch=16, col=tipcols[!duplicated(tipcols)], legend=tipcells[!duplicated(tipcols)], ncol=2, inset=c(legend_right_move,0))
-  if (with_landscape) {plot(rasK)}
 }
