@@ -7,18 +7,14 @@ if(anyNA(dataCoord)){
 }
   
 # Initialize the final genetic results table
-geneticResults <- matrix(data=NA, nrow=nrow(GeneticData), ncol=numberOfLoci)
+geneticResults <- matrix(data=NA, nrow=nrow(dataCoord), ncol=nbLocus)
 
 # Create r and K matrix :
 kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
 rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
 
 # Construct migration matrix :
-constructMigrationMatrix<- function(dist, param){
-  kernel <- apply(dist, c(1,2), gaussian, sigma = param)
-  migrationRates <- kernel/rowSums(kernel)
-  return(migrationRates)
-}
+
 migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
 
 

@@ -26,9 +26,16 @@ distanceMatrixFromRaster <- function(object){
   # Compute distance matrix
   dist <- apply(X = coords,
                 MARGIN = 1,
-                FUN = function(x){ values(distanceFromPoints(object = object[[1]], xy = x)) }
+                FUN = function(x){ spDistsN1(as.matrix(coords), x, longlat=TRUE) }
   )
+    
   return(dist)
+}
+
+constructMigrationMatrix<- function(dist, param){
+  kernel <- apply(dist, c(1,2), gaussian, sigma = param)
+  migrationRates <- kernel/rowSums(kernel)
+  return(migrationRates)
 }
 
 dispersionFunctionForValue <- function(dispersionFunction, x, args){

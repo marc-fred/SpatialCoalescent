@@ -3,7 +3,6 @@ source("AskModelsFunctions.R")
 source("NicheFunctions.R")
 source("DispersionFunctions.R")
 source("MutationFunctions.R")
-source("CoalescentFunctions.R")
 source("PriorFunctions.R")
 source("MarkovProcess.R")
 
@@ -11,7 +10,7 @@ library(raster)
 
 ###### Environmental data :
 
-environmentVariableRaster <- raster(matrix(data = sample(1:100, 100), ncol = 10),
+environmentVariableRaster <- raster(matrix(data = sample(1:100, 9), ncol = 3),
                               xmn = 40,
                               xmx = 50,
                               ymn = 0,
@@ -21,7 +20,7 @@ geoDistMatrix <- distanceMatrixFromRaster(object = environmentVariableRaster)/10
 envMatrix <- as.matrix(environmentVariableRaster)
 
 ###### Position data :
-dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 10))
+dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 3))
 
 ###### Locus information :
 nbLocus <- 2
