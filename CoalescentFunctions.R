@@ -1,6 +1,6 @@
 
 
-simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, localizationData,steps){
+simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, envMatrix, geoDistMatrix, nbLocus, localizationData,steps){
   # Simulate a genetic dataset given parameters
   #
   # Args :
@@ -31,8 +31,8 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
   # Returns :
   #   A matrix of genetic differenciation
   
-  list <- vapply(X = 1:nbLocus, 
-                 FUN = spatialCoalescenceForOneLocus(transitionBackward, localizationData, kMatrix, stepValue[x]),
+  list <- vapply(X = steps, 
+                 FUN = spatialCoalescenceForOneLocus(x, transitionBackward, localizationData, kMatrix),
                  FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
                  transitionBackward = transitionBackward, 
                  localizationData = localizationData,

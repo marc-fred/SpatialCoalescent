@@ -42,4 +42,12 @@ theta_rate <- 10^-5
 
 ##### 
 # launch simulations
-simulateSpatialCoalescent(theta_sigma, theta_Y, theta_rate, envMatrix, nbLocus, localizationData, steps)
+simulateSpatialCoalescent(theta_sigma = theta_sigma, 
+                          theta_Y_r = theta_Y_r,
+                          theta_Y_k = theta_Y_k,
+                          theta_rate = theta_rate,
+                          envMatrix = envMatrix,
+                          nbLocus = nbLocus,
+                          localizationData = localizationData, 
+                          steps = steps,
+                          geoDistMatrix = geoDistMatrix)
