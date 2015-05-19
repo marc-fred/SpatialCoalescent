@@ -1,28 +1,26 @@
 
 
-simSpatialCoal <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, localizationData,steps){
-  
-  if(anyNA(localizationData)){ 
-    stop("unknown localizations (NA) in simSpatialCoal. Please verify if genetic data coordinates are inside raster extent")
-  }
-  
-  # Initialize the final genetic results table
-  geneticResults <- matrix(data=NA, nrow=length(localizationData), ncol=nbLocus)
+simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, EnvMatrix, geoDistMatrix, nbLocus, localizationData,steps){
+  # Simulate a genetic dataset given parameters
+  #
+  # Args :
+  #
+  #
+  #
+  # Returns : 
+  # a matrix of genetic values for each individual (rows) at each locus (column)
   
   kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
   rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
   migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
-  
-  # Get transition matrix :
   transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
   
-  # Coalescence
-  spatialCoalescenceForMultipleLoci(transitionBackward, localizationData, nbLocus)
+  spatialCoalescenceForMultipleLoci(transitionBackward, localizationData, nbLocus, theta_rate, steps)
   
 
 }
  
-spatialCoalescenceForMultipleLoci <- function(backMat, coord, rep){
+spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, localizationData, nbLocus, theta_rate, steps){
   # Repeat coalescence simulation, once for each locus
   #
   # Args :
@@ -32,15 +30,25 @@ spatialCoalescenceForMultipleLoci <- function(backMat, coord, rep){
   #
   # Returns :
   #   A matrix of genetic differenciation
-  list <- vapply(X = 1:rep, 
-                 FUN = spatialCoalescenceForOneLocus(backMat, coord, kMatrix, stepValue), 
-                 FUN.VALUE = matrix(1, nrow = nrow(coord), ncol = rep),
-                 backwardMatrix = backMat, 
-                 coord = coord)
+  
+  list <- vapply(X = 1:nbLocus, 
+                 FUN = spatialCoalescenceForOneLocus(transitionBackward, localizationData, kMatrix, stepValue[x]),
+                 FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
+                 transitionBackward = transitionBackward, 
+                 localizationData = localizationData,
+                 stepValue = stepValue)
   return(list)
 }
 
-spatialCoalescenceForOneLocus <- function(backMat, coord, kMatrix, stepValue){
+
+spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, kMatrix, stepValue){
+  # Simulate the genetic values of various individuals at one locus
+  #
+  # Args: 
+  #
+  #
+  # Returns :
+  # A vector of genetic values for each individual.
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coal <- coalescentCore(tipDemes = localizationData, 
@@ -48,10 +56,11 @@ spatialCoalescenceForOneLocus <- function(backMat, coord, kMatrix, stepValue){
                          N = round(as.vector(t(kMatrix))))
   
   # branches informations : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
-  branch <- computeCoalescentBranchesInformation(coal, stepValue = stepValue)
+  branch <- computeCoalescentBranchesInformation(coal = coal, stepValue = stepValue)
   
   # compute observed genetic values
   genet <- computePresentGeneticValues(branch)
+  
   return(genet)
 }
 
@@ -119,10 +128,12 @@ computeCoalescentBranchesInformation <- function(coal, stepValue){
                                      stepValue = stepValue,
                                      mutationModel = stepWiseMutationModel,
                                      args = c())
+  
+  return(branchMat)
 }
 
   
-computePresentGeneticValues <- function(branchMat, ){
+computePresentGeneticValues <- function(branchMat, maxCoalEvent){
   # add genetic values
   values <- rep(NA, times = numNodes + maxCoalEvent)
   values[length(values)] <- initialGenetValue
