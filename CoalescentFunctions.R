@@ -15,7 +15,12 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
   migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
   transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
   
-  spatialCoalescenceForMultipleLoci(transitionBackward, localizationData, nbLocus, theta_rate, steps)
+  spatialCoalescenceForMultipleLoci(transitionBackward = transitionBackward, 
+                                    kMatrix = kMatrix, 
+                                    localizationData = localizationData, 
+                                    nbLocus = nbLocus, 
+                                    theta_rate = theta_rate,
+                                    steps = steps)
   
 
 }
@@ -36,7 +41,8 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
                  FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
                  transitionBackward = transitionBackward, 
                  localizationData = localizationData,
-                 stepValue = stepValue)
+                 kMatrix = kMatrix,
+                 theta_rate = theta_rate)
   return(list)
 }
 
