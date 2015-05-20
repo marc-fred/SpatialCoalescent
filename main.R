@@ -8,6 +8,7 @@ source("MarkovProcess.R")
 source("generalFunctions.R")
 
 library(raster)
+library(parallel)
 
 ###### Environmental data :
 
@@ -30,28 +31,36 @@ nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
 
-###### Model :
+numJobs <- 5
 
-# Parameters : 
-# dispersion : gaussian(0, sigma)
-theta_sigma <- uniform(n=1, min = 1, max = 10000)
-# niche : constant(Y)
-theta_Y_k <- uniform(n=1, min = 0, max = 100)
-theta_Y_r <- uniform(n=1, min = 0, max = 100)
-# mutation rate
-theta_rate <- uniform(n=1, min=0, max = 10)
+mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
+  
+  # Draw parameters : 
+  theta_sigma <- uniform(n=1, min = 1, max = 10000)
+  theta_Y_k <- uniform(n=1, min = 0, max = 100)
+  theta_Y_r <- uniform(n=1, min = 0, max = 100)
+  theta_rate <- uniform(n=1, min=0, max = 10)
+  
+  # Launch simulation
+  genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
+                                        theta_Y_r = theta_Y_r,
+                                        theta_Y_k = theta_Y_k,
+                                        theta_rate = theta_rate,
+                                        envMatrix = envMatrix,
+                                        nbLocus = nbLocus,
+                                        localizationData = localizationData, 
+                                        steps = steps,
+                                        geoDistMatrix = geoDistMatrix)
+  
+  # write results of genetic data 
+  fileName = paste("Genetics_", x , ".txt", sep="")
+  writeDataOutputInFile(theta_sigma, theta_Y_k, theta_Y_r, theta_rate, data = genetics, file = fileName)
+  
+}, 
+geoDistMatrix = geoDistMatrix, 
+envMatrix = envMatrix, 
+localizationData = localizationData, 
+nbLocus = nbLocus, 
+steps = steps,
+mc.preschedule = FALSE)
 
-##### 
-# launch simulation
-genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
-                                      theta_Y_r = theta_Y_r,
-                                      theta_Y_k = theta_Y_k,
-                                      theta_rate = theta_rate,
-                                      envMatrix = envMatrix,
-                                      nbLocus = nbLocus,
-                                      localizationData = localizationData, 
-                                      steps = steps,
-                                      geoDistMatrix = geoDistMatrix)
-
-# write result
-writeDataOutputInFile(theta_sigma,theta_Y_k,theta_Y_r,theta_rate, file="myFile")
