@@ -5,6 +5,7 @@ source("DispersionFunctions.R")
 source("MutationFunctions.R")
 source("PriorFunctions.R")
 source("MarkovProcess.R")
+source("generalFunctions.R")
 
 library(raster)
 
@@ -41,7 +42,7 @@ theta_Y_r <- uniform(n=1, min = 0, max = 100)
 theta_rate <- uniform(n=1, min=0, max = 10)
 
 ##### 
-# launch simulations
+# launch simulation
 genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
                                       theta_Y_r = theta_Y_r,
                                       theta_Y_k = theta_Y_k,

@@ -4,9 +4,10 @@ writeDataOutputInFile <- function(theta_sigma,theta_Y_k,theta_Y_r,theta_rate, fi
   # Args:
   #
   # Returns:
-  # A file written in the current directory 
+  # A file written 
+  dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
   
-  con <- file("myFile", open = "w")
+  con <- file("Simulations/myFile", open = "w")
   writeLines(c("theta_sigma : ", as.character(theta_sigma)), con=con)
   writeLines(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
   writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
