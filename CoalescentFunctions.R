@@ -81,51 +81,13 @@ computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate =
   # Fill child -> Parent information (decoupling children nodes)
   branchMat[,c(1,2)] <- rbind(coal[,c(2,4)] , coal[,c(3,4)])
   
-  timeC <- vapply(X = branchMat[,1],
-                  FUN = function(x, coal){
-                    # find position in coalescence table
-                    line <- which(coal[, 4] == x)
-                    if(length(line) == 1){
-                      # it's ok : get time
-                      t <- coal[line, 1] 
-                    }else if(length(line) == 0) {
-                      # node is an initial nod (tip node)
-                      t <- 0                          
-                    }else{
-                      # it's really NOT ok
-                      stop("error in filling branch lengths in coalescent : 
-                           several times of apparition for one node seem to appear : 
-                           please verify code")
-                    }
-                    return(t)
-                    },
-                  coal = coal,
-                  FUN.VALUE = c(1))
-  
+  timeChild <- mapply(FUN = timeFinder, branchMat[,1], MoreArgs = list(coal = coal))
+                  
   # time of apparition of parent node
-  timeP <- vapply(X = branchMat[,2],
-                  FUN = function(x, coal){
-                    # find position in coalescence table
-                    line <- which(coal[, 4] == x)
-                    if(length(line) == 1){
-                      # it's ok : get time
-                      t <- coal[line, 1] 
-                    }else if(length(line) == 0) {
-                      # node is an initial nod (tip node)
-                      t <- 0                          
-                    }else{
-                      # it's really NOT ok
-                      stop("error in filling branch lengths in coalescent : 
-                           several times of apparition for one node seem to appear : 
-                           please verify code")
-                    }
-                    return(t)
-                  },
-                  coal = coal,
-                  FUN.VALUE = c(1))
-  
+  timeParent <- mapply(FUN = timeFinder, branchMat[,2], MoreArgs = list(coal = coal))
+    
   # add branch length
-  branchMat[,3] <- timeP - timeC        
+  branchMat[,3] <- timeParent - timeChild        
   
   # add mutation number
   branchMat[,4] <- vapply(X = branchMat[,3],
@@ -272,7 +234,7 @@ timeFinder <- function(x, coal){
   #   The time at which the node x appeared for the first time
   
   # find position in coalescence table
-  line <- which(coal[, 4] == id)
+  line <- which(coal[, 4] == x)
   if(length(line) == 1){
     # it's ok : get time
     t <- coal[line, 1] 
