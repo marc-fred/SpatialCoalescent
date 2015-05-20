@@ -20,13 +20,13 @@ geoDistMatrix <- distanceMatrixFromRaster(object = environmentVariableRaster)/10
 envMatrix <- as.matrix(environmentVariableRaster)
 
 ###### Position data :
-dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 3))
+dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 20, replace = TRUE))
 localizationData <- cellFromXY(environmentVariableRaster, dataCoord)
 
 ###### Locus information :
-nbLocus <- 2
+nbLocus <- 10
 # assuming we have the step values for each locus
-steps <- c(2,3)
+steps <- sample(1:10, size = nbLocus ) 
 
 
 ###### Model :

@@ -8,7 +8,7 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
   #
   #
   # Returns : 
-  # a matrix of genetic values for each individual (rows) at each locus (column)
+  #   a matrix of genetic values for each individual (rows) at each locus (column)
   
   kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
   rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
@@ -29,20 +29,9 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
   # Repeat coalescence simulation, once for each locus
   #
   # Args :
-  #   backMat: the backward transition matrix
-  #   coord: the location of the sampled genes
-  #   rep: the number of loci
   #
   # Returns :
-  #   A matrix of genetic differenciation
-  
-#   list <- vapply(X = steps, 
-#                  FUN = spatialCoalescenceForOneLocus(x, transitionBackward, localizationData, kMatrix),
-#                  FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
-#                  transitionBackward = transitionBackward, 
-#                  localizationData = localizationData,
-#                  kMatrix = kMatrix,
-#                  theta_rate = theta_rate)
+  #   a matrix of genetic values for each individual (rows) at each locus (column)
   
   genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(transitionBackward = transitionBackward,
                                                                      localizationData = localizationData,
@@ -60,7 +49,7 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   #
   #
   # Returns :
-  # A vector of genetic values for each individual.
+  #   A vector of genetic values for each individual.
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coal <- coalescentCore(tipDemes = localizationData, 
@@ -77,6 +66,14 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
 }
 
 computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate = theta_rate){
+  # Computes the informations along the branches of the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns : 
+  #   A matrix giving the info along branches : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
+  
   maxCoalEvent <- nrow(coal)
   # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
@@ -84,51 +81,13 @@ computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate =
   # Fill child -> Parent information (decoupling children nodes)
   branchMat[,c(1,2)] <- rbind(coal[,c(2,4)] , coal[,c(3,4)])
   
-  timeC <- vapply(X = branchMat[,1],
-                  FUN = function(x, coal){
-                    # find position in coalescence table
-                    line <- which(coal[, 4] == x)
-                    if(length(line) == 1){
-                      # it's ok : get time
-                      t <- coal[line, 1] 
-                    }else if(length(line) == 0) {
-                      # node is an initial nod (tip node)
-                      t <- 0                          
-                    }else{
-                      # it's really NOT ok
-                      stop("error in filling branch lengths in coalescent : 
-                           several times of apparition for one node seem to appear : 
-                           please verify code")
-                    }
-                    return(t)
-                    },
-                  coal = coal,
-                  FUN.VALUE = c(1))
-  
+  timeChild <- mapply(FUN = timeFinder, branchMat[,1], MoreArgs = list(coal = coal))
+                  
   # time of apparition of parent node
-  timeP <- vapply(X = branchMat[,2],
-                  FUN = function(x, coal){
-                    # find position in coalescence table
-                    line <- which(coal[, 4] == x)
-                    if(length(line) == 1){
-                      # it's ok : get time
-                      t <- coal[line, 1] 
-                    }else if(length(line) == 0) {
-                      # node is an initial nod (tip node)
-                      t <- 0                          
-                    }else{
-                      # it's really NOT ok
-                      stop("error in filling branch lengths in coalescent : 
-                           several times of apparition for one node seem to appear : 
-                           please verify code")
-                    }
-                    return(t)
-                  },
-                  coal = coal,
-                  FUN.VALUE = c(1))
-  
+  timeParent <- mapply(FUN = timeFinder, branchMat[,2], MoreArgs = list(coal = coal))
+    
   # add branch length
-  branchMat[,3] <- timeP - timeC        
+  branchMat[,3] <- timeParent - timeChild        
   
   # add mutation number
   branchMat[,4] <- vapply(X = branchMat[,3],
@@ -146,6 +105,14 @@ computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate =
 
   
 computePresentGeneticValues <- function(branchMat, coal, localizationData, initialGeneticValue){
+  # Uses branchMat to compute the genetic values of the sample, going down in the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns :
+  #   a vector of genetic values at the locus for each individuals of the sample.
+  
   # add genetic values
   numNodes = length(localizationData)
   maxCoalEvent = numNodes -1
@@ -159,7 +126,7 @@ computePresentGeneticValues <- function(branchMat, coal, localizationData, initi
     # find the genetic value of the parent
     values[n] <- values[branchMat[focal, 2]] +res
   }
-  return(values)
+  return(values[1:numNodes])
 }     
 
 
@@ -267,7 +234,7 @@ timeFinder <- function(x, coal){
   #   The time at which the node x appeared for the first time
   
   # find position in coalescence table
-  line <- which(coal[, 4] == id)
+  line <- which(coal[, 4] == x)
   if(length(line) == 1){
     # it's ok : get time
     t <- coal[line, 1] 
