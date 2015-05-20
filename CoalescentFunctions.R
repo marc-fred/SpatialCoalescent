@@ -159,7 +159,7 @@ computePresentGeneticValues <- function(branchMat, coal, localizationData, initi
     # find the genetic value of the parent
     values[n] <- values[branchMat[focal, 2]] +res
   }
-  return(values)
+  return(values[1:numNodes])
 }     
 
 
