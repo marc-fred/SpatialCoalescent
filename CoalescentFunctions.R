@@ -62,7 +62,7 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
                          N = round(as.vector(t(kMatrix))))
   
   # branches informations : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
-  branch <- computeCoalescentBranchesInformation(coal = coal, stepValue = stepValue)
+  branch <- computeCoalescentBranchesInformation(coal = coal, stepValue = stepValue, mutationRate = theta_rate)
   
   # compute observed genetic values
   genet <- computePresentGeneticValues(branch)
@@ -70,7 +70,7 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   return(genet)
 }
 
-computeCoalescentBranchesInformation <- function(coal, stepValue){
+computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate = theta_rate){
   maxCoalEvent <- nrow(coal)
   # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
