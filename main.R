@@ -5,8 +5,10 @@ source("DispersionFunctions.R")
 source("MutationFunctions.R")
 source("PriorFunctions.R")
 source("MarkovProcess.R")
+source("generalFunctions.R")
 
 library(raster)
+library(parallel)
 
 ###### Environmental data :
 
@@ -29,25 +31,36 @@ nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
 
-###### Model :
+numJobs <- 50
 
-# Parameters : 
-# dispersion : gaussian(0, sigma)
-theta_sigma <- 1000
-# niche : constant(Y)
-theta_Y_k <- 5
-theta_Y_r <- 1
-# mutation rate
-theta_rate <- 10
+mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
+  
+  # Draw parameters : 
+  theta_sigma <- uniform(n=1, min = 1, max = 10000)
+  theta_Y_k <- uniform(n=1, min = 0, max = 100)
+  theta_Y_r <- uniform(n=1, min = 0, max = 100)
+  theta_rate <- uniform(n=1, min=0, max = 10)
+  
+  # Launch simulation
+  genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
+                                        theta_Y_r = theta_Y_r,
+                                        theta_Y_k = theta_Y_k,
+                                        theta_rate = theta_rate,
+                                        envMatrix = envMatrix,
+                                        nbLocus = nbLocus,
+                                        localizationData = localizationData, 
+                                        steps = steps,
+                                        geoDistMatrix = geoDistMatrix)
+  
+  # write results of genetic data 
+  fileName = paste("Genetics_", x , ".txt", sep="")
+  writeDataOutputInFile(theta_sigma, theta_Y_k, theta_Y_r, theta_rate, data = genetics, file = fileName)
+  
+}, 
+geoDistMatrix = geoDistMatrix, 
+envMatrix = envMatrix, 
+localizationData = localizationData, 
+nbLocus = nbLocus, 
+steps = steps,
+mc.preschedule = FALSE)
 
-##### 
-# launch simulations
-simulateSpatialCoalescent(theta_sigma = theta_sigma, 
-                          theta_Y_r = theta_Y_r,
-                          theta_Y_k = theta_Y_k,
-                          theta_rate = theta_rate,
-                          envMatrix = envMatrix,
-                          nbLocus = nbLocus,
-                          localizationData = localizationData, 
-                          steps = steps,
-                          geoDistMatrix = geoDistMatrix)
