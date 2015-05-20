@@ -31,7 +31,7 @@ nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
 
-numJobs <- 5
+numJobs <- 50
 
 mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
   
