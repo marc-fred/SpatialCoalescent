@@ -33,21 +33,31 @@ steps <- sample(1:10, size = nbLocus )
 
 # Parameters : 
 # dispersion : gaussian(0, sigma)
-theta_sigma <- 1000
+theta_sigma <- uniform(n=1, min = 1, max = 10000)
 # niche : constant(Y)
-theta_Y_k <- 5
-theta_Y_r <- 1
+theta_Y_k <- uniform(n=1, min = 0, max = 100)
+theta_Y_r <- uniform(n=1, min = 0, max = 100)
 # mutation rate
-theta_rate <- 10
+theta_rate <- uniform(n=1, min=0, max = 10)
 
 ##### 
 # launch simulations
-simulateSpatialCoalescent(theta_sigma = theta_sigma, 
-                          theta_Y_r = theta_Y_r,
-                          theta_Y_k = theta_Y_k,
-                          theta_rate = theta_rate,
-                          envMatrix = envMatrix,
-                          nbLocus = nbLocus,
-                          localizationData = localizationData, 
-                          steps = steps,
-                          geoDistMatrix = geoDistMatrix)
+genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
+                                      theta_Y_r = theta_Y_r,
+                                      theta_Y_k = theta_Y_k,
+                                      theta_rate = theta_rate,
+                                      envMatrix = envMatrix,
+                                      nbLocus = nbLocus,
+                                      localizationData = localizationData, 
+                                      steps = steps,
+                                      geoDistMatrix = geoDistMatrix)
+
+# write result
+con <- file("myFile", open = "w")
+writeLines(c("theta_sigma : ", as.character(theta_sigma)), con=con)
+writeLines(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
+writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
+writeLines(c("theta_rate : ", as.character(theta_rate)), con=con)
+writeLines(c("", "GENETICS:", ""), con=con)
+write.table(genetics, file=con, sep = "\t", quote = FALSE, col.names = FALSE, append=TRUE)
+close(con)
