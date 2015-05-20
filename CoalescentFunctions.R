@@ -8,7 +8,7 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
   #
   #
   # Returns : 
-  # a matrix of genetic values for each individual (rows) at each locus (column)
+  #   a matrix of genetic values for each individual (rows) at each locus (column)
   
   kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
   rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
@@ -29,20 +29,9 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
   # Repeat coalescence simulation, once for each locus
   #
   # Args :
-  #   backMat: the backward transition matrix
-  #   coord: the location of the sampled genes
-  #   rep: the number of loci
   #
   # Returns :
-  #   A matrix of genetic differenciation
-  
-#   list <- vapply(X = steps, 
-#                  FUN = spatialCoalescenceForOneLocus(x, transitionBackward, localizationData, kMatrix),
-#                  FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
-#                  transitionBackward = transitionBackward, 
-#                  localizationData = localizationData,
-#                  kMatrix = kMatrix,
-#                  theta_rate = theta_rate)
+  #   a matrix of genetic values for each individual (rows) at each locus (column)
   
   genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(transitionBackward = transitionBackward,
                                                                      localizationData = localizationData,
@@ -60,7 +49,7 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   #
   #
   # Returns :
-  # A vector of genetic values for each individual.
+  #   A vector of genetic values for each individual.
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coal <- coalescentCore(tipDemes = localizationData, 
@@ -77,6 +66,14 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
 }
 
 computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate = theta_rate){
+  # Computes the informations along the branches of the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns : 
+  #   A matrix giving the info along branches : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
+  
   maxCoalEvent <- nrow(coal)
   # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
@@ -146,6 +143,14 @@ computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate =
 
   
 computePresentGeneticValues <- function(branchMat, coal, localizationData, initialGeneticValue){
+  # Uses branchMat to compute the genetic values of the sample, going down in the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns :
+  #   a vector of genetic values at the locus for each individuals of the sample.
+  
   # add genetic values
   numNodes = length(localizationData)
   maxCoalEvent = numNodes -1
