@@ -36,18 +36,24 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
   # Returns :
   #   A matrix of genetic differenciation
   
-  list <- vapply(X = steps, 
-                 FUN = spatialCoalescenceForOneLocus(x, transitionBackward, localizationData, kMatrix),
-                 FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
-                 transitionBackward = transitionBackward, 
-                 localizationData = localizationData,
-                 kMatrix = kMatrix,
-                 theta_rate = theta_rate)
-  return(list)
+#   list <- vapply(X = steps, 
+#                  FUN = spatialCoalescenceForOneLocus(x, transitionBackward, localizationData, kMatrix),
+#                  FUN.VALUE = matrix(1, nrow = nrow(localizationData), ncol = nbLocus),
+#                  transitionBackward = transitionBackward, 
+#                  localizationData = localizationData,
+#                  kMatrix = kMatrix,
+#                  theta_rate = theta_rate)
+  
+  genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(transitionBackward = transitionBackward,
+                                                                     localizationData = localizationData,
+                                                                     kMatrix = kMatrix,
+                                                                     theta_rate = theta_rate), SIMPLIFY = TRUE, USE.NAMES = TRUE)
+  
+  return(genetValues)
 }
 
 
-spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, kMatrix, stepValue){
+spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, kMatrix, stepValue, theta_rate){
   # Simulate the genetic values of various individuals at one locus
   #
   # Args: 
@@ -65,7 +71,7 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   branch <- computeCoalescentBranchesInformation(coal = coal, stepValue = stepValue, mutationRate = theta_rate)
   
   # compute observed genetic values
-  genet <- computePresentGeneticValues(branch)
+  genet <- computePresentGeneticValues(branchMat = branch, coal = coal, localizationData = localizationData, initialGeneticValue = 0)
   
   return(genet)
 }
@@ -139,10 +145,12 @@ computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate =
 }
 
   
-computePresentGeneticValues <- function(branchMat, maxCoalEvent){
+computePresentGeneticValues <- function(branchMat, coal, localizationData, initialGeneticValue){
   # add genetic values
+  numNodes = length(localizationData)
+  maxCoalEvent = numNodes -1
   values <- rep(NA, times = numNodes + maxCoalEvent)
-  values[length(values)] <- initialGenetValue
+  values[length(values)] <- initialGeneticValue
   for(n in seq(from = length(values)-1, to =1, by = -1 )){
     # find the line of the focal node
     focal <- which(branchMat[,1] == n)

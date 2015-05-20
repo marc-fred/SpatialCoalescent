@@ -38,7 +38,7 @@ theta_sigma <- 1000
 theta_Y_k <- 5
 theta_Y_r <- 1
 # mutation rate
-theta_rate <- 10^-5
+theta_rate <- 10
 
 ##### 
 # launch simulations
