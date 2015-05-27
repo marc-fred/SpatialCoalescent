@@ -55,11 +55,26 @@ local({
   
   mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
     
+    set.seed(x)
+    
     # Draw parameters : 
     theta_sigma <- uniform(n=1, min = 1, max = 10000)
     theta_Y_k <- uniform(n=1, min = 0, max = 100)
     theta_Y_r <- uniform(n=1, min = 0, max = 100)
     theta_rate <- uniform(n=1, min=0, max = 10)
+    
+    # error handling
+    errorFileName = paste("stderr_", x , ".txt", sep="")
+    con <- file(paste("Simulations/", errorFileName, sep=""), open = "w")
+    
+    writeLines(c("theta_sigma : ", as.character(theta_sigma)), con=con)
+    writeLines(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
+    writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
+    writeLines(c("theta_rate : ", as.character(theta_rate)), con=con)
+    
+    sink(file = con, type = "message")
+    
+    
     
     # Launch simulation
     genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 
@@ -72,9 +87,9 @@ local({
                                           steps = steps,
                                           geoDistMatrix = geoDistMatrix)
     
-    # write results of genetic data 
-    fileName = paste("Genetics_", x , ".txt", sep="")
-    writeDataOutputInFile(theta_sigma, theta_Y_k, theta_Y_r, theta_rate, data = genetics, file = fileName)
+    # write results of genetic data
+    dataFileName = paste("genetics_", x , ".txt", sep="")
+    writeDataOutputInFile(theta_sigma, theta_Y_k, theta_Y_r, theta_rate, data = genetics, file = dataFileName)
     
     # Send progress update
     writeBin(1/numJobs, f)
