@@ -51,7 +51,7 @@ local({
   }
   
   
-  numJobs <- 50000
+  numJobs <- 500
   
   mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
     tryCatch(
@@ -83,16 +83,18 @@ local({
         errorFileName = paste("stderr_", x , ".txt", sep="")
         con <- file(paste("Simulations/", errorFileName, sep=""), open = "w")
         
-        writeLines(c("theta_sigma : ", as.character(theta_sigma)), con=con)
-        writeLines(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
-        writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
-        writeLines(c("theta_rate : ", as.character(theta_rate)), con=con)
-        
+        message(c("theta_sigma : ", as.character(theta_sigma)), con=con)
+        message(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
+        message(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
+        message(c("theta_rate : ", as.character(theta_rate)), con=con)
+        message("Here's the original warning message:")
+        message(cond)
         sink(file = con, type = "message")
+      },
+      finally={
+        # Send progress update
+        writeBin(1/numJobs, f)
       })
-        
-    # Send progress update
-    writeBin(1/numJobs, f)
     
   },
   geoDistMatrix = geoDistMatrix, 
@@ -100,7 +102,7 @@ local({
   localizationData = localizationData, 
   nbLocus = nbLocus, 
   steps = steps,
-  mc.cores = 20,
+  mc.cores = 2,
   mc.preschedule = FALSE)
   
 })
