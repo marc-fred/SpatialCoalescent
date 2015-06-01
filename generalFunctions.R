@@ -22,7 +22,7 @@ readGeneticDataFiles <- function(){
   allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
   allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
   allGenetics <- lapply(X = allPaths, FUN = function(x) readGenetics(file = x))
-  return(genetics)
+  return(allGenetics)
 }
 
 readGenetics <- function(file){
@@ -31,10 +31,7 @@ readGenetics <- function(file){
   return(genetics)
 }
 
-lapply(X = allPaths, FUN = function(x) print(x))
-
-
-modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){
+modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){ # mutationMatrix <- genetics[[1]]
   if(LocusInColumns == TRUE){
     margin <- 2
   }else if (LocusInColumns == FALSE){
@@ -45,12 +42,12 @@ modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TR
   
   k_l <- apply(X = mutationMatrix,
                MARGIN = margin,
-               FUN = length(unique(x))
+               FUN = function(x) length(unique(x))
   )
   
   r_l <- apply(X = mutationMatrix,
                MARGIN = margin,
-               FUN = max(x) - min(x)
+               FUN = function(x) max(x) - min(x)
   )
   
   stat <- sum(k_l)/sum(1 + r_l)
