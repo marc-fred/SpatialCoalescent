@@ -16,3 +16,36 @@ writeDataOutputInFile <- function(theta_sigma, theta_Y_k, theta_Y_r, theta_rate,
   write.table(data, file=con, sep = "\t", quote = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 }
+
+readGeneticDataFiles <- function(){
+  
+  path <- paste(getwd(), "/Simulations", sep = "")
+  allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
+  genetics <- sapply(X = allFiles, FUN = readGenetics(x))
+  return(genetics)
+}
+
+
+
+modifiedMStatisticsExcoffier2005MultipleLoci <- function(mutationMatrix, LocusInColumns = TRUE){
+  if(LocusInColumns == TRUE){
+    margin <- 2
+  }if(LocusInColumns == FALSE){
+    margin <- 1
+  }else{
+    stop("LocusInColumn is not a boolean")
+  }
+  
+  k_l <- apply(X = mutationMatrix,
+               MARGIN = margin,
+               FUN = length(unique(x))
+  )
+  
+  r_l <- apply(X = mutationMatrix,
+               MARGIN = margin,
+               FUN = max(x) - min(x)
+  )
+  
+  stat <- sum(k_l)/sum(1 + r_l)
+  
+}
