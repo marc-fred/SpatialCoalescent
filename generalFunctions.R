@@ -13,7 +13,7 @@ writeDataOutputInFile <- function(theta_sigma, theta_Y_k, theta_Y_r, theta_rate,
   writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
   writeLines(c("theta_rate : ", as.character(theta_rate)), con=con)
   writeLines(c("", "GENETICS:", ""), con=con)
-  write.table(data, file=con, sep = "\t", quote = FALSE, col.names = FALSE, append=TRUE)
+  write.table(data, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 }
 
@@ -37,7 +37,7 @@ lapply(X = allPaths, FUN = function(x) print(x))
 modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){
   if(LocusInColumns == TRUE){
     margin <- 2
-  }if(LocusInColumns == FALSE){
+  }else if (LocusInColumns == FALSE){
     margin <- 1
   }else{
     stop("LocusInColumn is not a boolean")
