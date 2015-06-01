@@ -19,15 +19,20 @@ writeDataOutputInFile <- function(theta_sigma, theta_Y_k, theta_Y_r, theta_rate,
 
 readGeneticDataFiles <- function(){
   
-  path <- paste(getwd(), "/Simulations", sep = "")
   allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
-  genetics <- sapply(X = allFiles, FUN = readGenetics(x))
+  allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
+  allGenetics <- lapply(X = allPaths, FUN = readGenetics(x))
+  return(genetics)
+}
+
+readGenetics <- function(file){
+  skipLine <- which(readLines(file)=="GENETICS:")
+  genetics <- read.table(file = file, skip = skipLine)
   return(genetics)
 }
 
 
-
-modifiedMStatisticsExcoffier2005MultipleLoci <- function(mutationMatrix, LocusInColumns = TRUE){
+modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){
   if(LocusInColumns == TRUE){
     margin <- 2
   }if(LocusInColumns == FALSE){
