@@ -51,7 +51,7 @@ local({
   }
   
   
-  numJobs <- 500
+  numJobs <- 50
   
   mclapply(X = 1:numJobs, FUN = function(x, geoDistMatrix, envMatrix, localizationData, nbLocus, steps){
     tryCatch(
@@ -82,14 +82,14 @@ local({
       error = function(cond) {
         errorFileName = paste("stderr_", x , ".txt", sep="")
         con <- file(paste("Simulations/", errorFileName, sep=""), open = "w")
-        
+        sink(file = con, type = "message", append =TRUE)
+
         message(c("theta_sigma : ", as.character(theta_sigma)), con=con)
         message(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
         message(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
         message(c("theta_rate : ", as.character(theta_rate)), con=con)
         message("Here's the original warning message:")
-        message(cond)
-        sink(file = con, type = "message")
+        write(paste("MY ERROR:", cond), file=con, append=TRUE)
       },
       finally={
         # Send progress update
