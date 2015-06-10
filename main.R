@@ -89,7 +89,7 @@ local({
         message(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
         message(c("theta_rate : ", as.character(theta_rate)), con=con)
         message("Here's the original warning message:")
-        message(cond)
+        write(paste("MY ERROR:", cond), file=con, append=TRUE)
       },
       finally={
         # Send progress update
