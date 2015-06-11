@@ -72,7 +72,6 @@ reproductionStep <- function(demographicMatrix, kMatrix, rMatrix){
   r_v <- as.vector(rMatrix)
   N_tilde_v <- mapply(FUN=function(N_v, r_v, K_v){ N_v*(1+r_v)/(1+(r_v*N_v)/K_v) }, N_v, r_v, k_v)
   N_tilde_m <- matrix(data = N_tilde_v, ncol = ncol(demographicMatrix))
-  N_tilde_m <- round(N_tilde_m)
   return(N_tilde_m)
 }
 
@@ -88,7 +87,6 @@ migrationStep <- function(demographicMatrix, migMatrix){
   N_tilde_v <- as.vector(demographicMatrix)
   N_v <- N_tilde_v %*% migMatrix
   N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
-  N_m <- round(N_m)
   return(N_m)
 }
 
@@ -102,10 +100,14 @@ demographicGeneration <- function(demographicMatrix, kMatrix, rMatrix, migMatrix
   #   migMatrix : a matrix of migration probabilities between cells
   #
   # Returns : 
-  #   A matrix of population size
+  #   A list with $demography : matrix of population size and $migration : matrix of pop flux.
   N_tilde_m <- reproductionStep(demographicMatrix, kMatrix, rMatrix)
+  
+  migHistory_m <- computeMigrationHistory(N_m = N_tilde_m, mig_m = migMatrix)
   N_m <- migrationStep(demographicMatrix = N_tilde_m, migMatrix = migMatrix)
-  return(N_m)
+  
+  generation_l <- list(demography = N_m, migration = migHistory_m)
+  return(generation_l)
 }
 
 demographicSimulation <- function(numberOfGenerations, demographicMatrix, kMatrix, rMatrix, migMatrix){
@@ -120,17 +122,36 @@ demographicSimulation <- function(numberOfGenerations, demographicMatrix, kMatri
   #
   # Returns : 
   #   A list of matrix of population size, forward in time
-  demographicList <- list()
-  demographicList[[1]] <- demographicMatrix
-  i_generation <- 1
-  
-  while(i_generation  < numberOfGenerations){
-    demographicList[[i_generation]] <- demographicMatrix
-    demographicMatrix <- demographicGeneration(demographicMatrix, kMatrix, rMatrix, migMatrix)
-    i_generation <- i_generation + 1
+  demoHistory_l <- list()
+  migHistory_l <- list()
+
+  i_time <- 1
+  while(i_time < numberOfGenerations){
+    demoHistory_l[[i_time]] <- demographicMatrix
+    
+    generationList <- demographicGeneration(demographicMatrix, kMatrix, rMatrix, migMatrix)
+    
+    demographicMatrix <- generationList$demography
+    migHistory_l[[i_time]] <- generationList$migration
+    
+    i_time <- i_time + 1
   }
-  return(demographicList)
+  
+  history_l <- list(demoHistory = demoHistory_l, migHistory = migHistory_l)
+  return(history_l)
 }
 
-demographicMatrix <- createInitialDemographicsLandscape(envMatrix)
-demographicList <- demographicSimulation(numberOfGenerations = 10, demographicMatrix, kMatrix, rMatrix, migMatrix)
+computeMigrationHistory <- function(N_m, mig_m){
+  # Function to create a matrix of migration effective number from the migration and the demographic matrix
+  #
+  # Args :
+  #   N_m : a matrix of population size. No need to be integer.
+  #   r_m : a matrix of growth rate
+  #   mig_m : a matrix of migration probabilities between cells
+  #
+  # Returns : 
+  #   A matrix of effective migrant number : each column i gives the distribution across demes of migrants coming to the deme i.
+  N_v <- as.vector(N_m)
+  migrants_m <- N_v*mig_m
+  return(migrants_m)
+}

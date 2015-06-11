@@ -5,6 +5,7 @@ source("MutationFunctions.R")
 source("PriorFunctions.R")
 source("MarkovProcess.R")
 source("generalFunctions.R")
+source("demographicGrowth.R")
 
 library(raster)
 library(parallel)

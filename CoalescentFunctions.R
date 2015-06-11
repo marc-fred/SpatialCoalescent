@@ -13,10 +13,17 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
   kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
   rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
   migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
-  transitionBackward <- transitionMatrixBackward(r = rMatrix, K = kMatrix, m = migMatrix)
   
-  spatialCoalescenceForMultipleLoci(transitionBackward = transitionBackward, 
-                                    kMatrix = kMatrix, 
+  # Initialize the demographic matrix (by default one fondator in topleft)
+  demographicMatrix <- createInitialDemographicsLandscape(envMatrix)
+  
+  # Simulate demography
+  history_l <- demographicSimulation(numberOfGenerations = 10, demographicMatrix, kMatrix, rMatrix, migMatrix)
+  demoHistory_l <- history_l$demoHistory
+  migHistory_l <- history_l$migHistory
+  
+  spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l, 
+                                    demoHistory_l = demoHistory_l, 
                                     localizationData = localizationData, 
                                     nbLocus = nbLocus, 
                                     theta_rate = theta_rate,
@@ -25,7 +32,7 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
 
 }
  
-spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, localizationData, nbLocus, theta_rate, steps){
+spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, localizationData, nbLocus, theta_rate, steps){
   # Repeat coalescence simulation, once for each locus
   #
   # Args :
@@ -33,16 +40,16 @@ spatialCoalescenceForMultipleLoci <- function(transitionBackward, kMatrix, local
   # Returns :
   #   a matrix of genetic values for each individual (rows) at each locus (column)
   
-  genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(transitionBackward = transitionBackward,
+  genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(migHistory_l = migHistory_l,
                                                                      localizationData = localizationData,
-                                                                     kMatrix = kMatrix,
+                                                                     demoHistory_l = demoHistory_l,
                                                                      theta_rate = theta_rate), SIMPLIFY = TRUE, USE.NAMES = TRUE)
   
   return(genetValues)
 }
 
 
-spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, kMatrix, stepValue, theta_rate){
+spatialCoalescenceForOneLocus <- function(migHistory_l, localizationData, demoHistory_l, stepValue, theta_rate){
   # Simulate the genetic values of various individuals at one locus
   #
   # Args: 
@@ -53,8 +60,8 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coal <- coalescentCore(tipDemes = localizationData, 
-                         transitionBackward = transitionBackward, 
-                         N = round(as.vector(t(kMatrix))))
+                         migHistory_l = migHistory_l, 
+                         N_l = demoHistory_l)
   
   # branches informations : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
   branch <- computeCoalescentBranchesInformation(coal = coal, stepValue = stepValue, mutationRate = theta_rate)
@@ -65,77 +72,13 @@ spatialCoalescenceForOneLocus <- function(transitionBackward, localizationData, 
   return(genet)
 }
 
-computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate = theta_rate){
-  # Computes the informations along the branches of the coalescent
-  #
-  # Args :
-  #
-  #
-  # Returns : 
-  #   A matrix giving the info along branches : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
-  
-  maxCoalEvent <- nrow(coal)
-  # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
-  branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
-  
-  # Fill child -> Parent information (decoupling children nodes)
-  branchMat[,c(1,2)] <- rbind(coal[,c(2,4)] , coal[,c(3,4)])
-  
-  timeChild <- mapply(FUN = timeFinder, branchMat[,1], MoreArgs = list(coal = coal))
-                  
-  # time of apparition of parent node
-  timeParent <- mapply(FUN = timeFinder, branchMat[,2], MoreArgs = list(coal = coal))
-    
-  # add branch length
-  branchMat[,3] <- timeParent - timeChild        
-  
-  # add mutation number
-  branchMat[,4] <- vapply(X = branchMat[,3],
-                          FUN = function(x){rpois(n = 1, lambda = mutationRate*x)},
-                          FUN.VALUE = c(1))
-  
-  # add resultant 
-  branchMat[,5] <- resultantFunction(nbrMutations = branchMat[,4],
-                                     stepValue = stepValue,
-                                     mutationModel = stepWiseMutationModel,
-                                     args = c())
-  
-  return(branchMat)
-}
 
-  
-computePresentGeneticValues <- function(branchMat, coal, localizationData, initialGeneticValue){
-  # Uses branchMat to compute the genetic values of the sample, going down in the coalescent
-  #
-  # Args :
-  #
-  #
-  # Returns :
-  #   a vector of genetic values at the locus for each individuals of the sample.
-  
-  # add genetic values
-  numNodes = length(localizationData)
-  maxCoalEvent = numNodes -1
-  values <- rep(NA, times = numNodes + maxCoalEvent)
-  values[length(values)] <- initialGeneticValue
-  for(n in seq(from = length(values)-1, to =1, by = -1 )){
-    # find the line of the focal node
-    focal <- which(branchMat[,1] == n)
-    # find the resultant
-    res <- branchMat[focal, 5]
-    # find the genetic value of the parent
-    values[n] <- values[branchMat[focal, 2]] +res
-  }
-  return(values[1:numNodes])
-}     
-
-
-coalescentCore <- function(tipDemes, transitionBackward, N){
+coalescentCore <- function(tipDemes, migHistory_l, N_l){
   # Simulate a genealogy backward in the time, accross demes
   # 
   # Args:
   #   tipdDemes: vector of the demes in which each node is found a time 0.
-  #   transitionBackward: matrix of transition backward in time
+  #   migHistory_l: matrix of transition backward in time
   #   N a vector of population sizes
   #
   # Returns: 
@@ -249,3 +192,68 @@ timeFinder <- function(x, coal){
   }
   return(t)
 }
+
+
+computeCoalescentBranchesInformation <- function(coal, stepValue, mutationRate = theta_rate){
+  # Computes the informations along the branches of the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns : 
+  #   A matrix giving the info along branches : (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
+  
+  maxCoalEvent <- nrow(coal)
+  # Create a matrice for branches (in columns : Child/Parent/Branch length/Number of mutation/Resultant)
+  branchMat <- matrix(NA, nrow = (maxCoalEvent)*2, ncol = 5)
+  
+  # Fill child -> Parent information (decoupling children nodes)
+  branchMat[,c(1,2)] <- rbind(coal[,c(2,4)] , coal[,c(3,4)])
+  
+  timeChild <- mapply(FUN = timeFinder, branchMat[,1], MoreArgs = list(coal = coal))
+  
+  # time of apparition of parent node
+  timeParent <- mapply(FUN = timeFinder, branchMat[,2], MoreArgs = list(coal = coal))
+  
+  # add branch length
+  branchMat[,3] <- timeParent - timeChild        
+  
+  # add mutation number
+  branchMat[,4] <- vapply(X = branchMat[,3],
+                          FUN = function(x){rpois(n = 1, lambda = mutationRate*x)},
+                          FUN.VALUE = c(1))
+  
+  # add resultant 
+  branchMat[,5] <- resultantFunction(nbrMutations = branchMat[,4],
+                                     stepValue = stepValue,
+                                     mutationModel = stepWiseMutationModel,
+                                     args = c())
+  
+  return(branchMat)
+}
+
+
+computePresentGeneticValues <- function(branchMat, coal, localizationData, initialGeneticValue){
+  # Uses branchMat to compute the genetic values of the sample, going down in the coalescent
+  #
+  # Args :
+  #
+  #
+  # Returns :
+  #   a vector of genetic values at the locus for each individuals of the sample.
+  
+  # add genetic values
+  numNodes = length(localizationData)
+  maxCoalEvent = numNodes -1
+  values <- rep(NA, times = numNodes + maxCoalEvent)
+  values[length(values)] <- initialGeneticValue
+  for(n in seq(from = length(values)-1, to =1, by = -1 )){
+    # find the line of the focal node
+    focal <- which(branchMat[,1] == n)
+    # find the resultant
+    res <- branchMat[focal, 5]
+    # find the genetic value of the parent
+    values[n] <- values[branchMat[focal, 2]] +res
+  }
+  return(values[1:numNodes])
+}     
