@@ -1,46 +1,3 @@
-source("CoalescentFunctions.R")
-source("NicheFunctions.R")
-source("DispersionFunctions.R")
-source("MutationFunctions.R")
-source("PriorFunctions.R")
-source("MarkovProcess.R")
-source("generalFunctions.R")
-
-library(raster)
-library(parallel)
-
-###### Environmental data :
-
-environmentVariableRaster <- raster(matrix(data = sample(1:100, 9), ncol = 3),
-                                    xmn = 40,
-                                    xmx = 50,
-                                    ymn = 0,
-                                    ymx = 10,
-                                    crs = "+proj=longlat +datum=WGS84")
-geoDistMatrix <- distanceMatrixFromRaster(object = environmentVariableRaster)/1000
-envMatrix <- as.matrix(environmentVariableRaster)
-
-###### Position data :
-dataCoord <- xyFromCell(environmentVariableRaster, sample(1:ncell(environmentVariableRaster), 20, replace = TRUE))
-localizationData <- cellFromXY(environmentVariableRaster, dataCoord)
-
-###### Locus information :
-nbLocus <- 10
-# assuming we have the step values for each locus
-steps <- sample(1:10, size = nbLocus ) 
-
-x <- 1
-
-set.seed(x)
-# Draw parameters : 
-theta_sigma <- uniform(n=1, min = 1, max = 10000)
-theta_Y_k <- uniform(n=1, min = 0, max = 100)
-theta_Y_r <- uniform(n=1, min = 0, max = 100)
-theta_rate <- uniform(n=1, min=0, max = 10)
-
-kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
-rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
-migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
 
 createInitialDemographicsLandscape <- function(landscape){
   # Function to create an initial matrix of demographic size : fondator
@@ -71,6 +28,7 @@ reproductionStep <- function(demographicMatrix, kMatrix, rMatrix){
   k_v <- as.vector(kMatrix)
   r_v <- as.vector(rMatrix)
   N_tilde_v <- mapply(FUN=function(N_v, r_v, K_v){ N_v*(1+r_v)/(1+(r_v*N_v)/K_v) }, N_v, r_v, k_v)
+  N_tilde_v <- floor(N_tilde_v)
   N_tilde_m <- matrix(data = N_tilde_v, ncol = ncol(demographicMatrix))
   return(N_tilde_m)
 }
@@ -85,9 +43,14 @@ migrationStep <- function(demographicMatrix, migMatrix){
   # Returns : 
   #   A matrix of population size after dispersion
   N_tilde_v <- as.vector(demographicMatrix)
-  N_v <- N_tilde_v %*% migMatrix
-  N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
-  return(N_m)
+  
+  # Distribution of migrants : col = parental deme, row = destination deme 
+  migrants <- sapply(X = 1:length(N_tilde_v),
+                     FUN = function(x, N_tilde_v, migMatrix){ rmultinom(n=1, size = N_tilde_v[x], prob = migMatrix[x,])
+                     },
+                     N_tilde_v = N_tilde_v,
+                     migMatrix = migMatrix)
+  return(migrants)
 }
 
 demographicGeneration <- function(demographicMatrix, kMatrix, rMatrix, migMatrix){
@@ -102,10 +65,11 @@ demographicGeneration <- function(demographicMatrix, kMatrix, rMatrix, migMatrix
   # Returns : 
   #   A list with $demography : matrix of population size and $migration : matrix of pop flux.
   N_tilde_m <- reproductionStep(demographicMatrix, kMatrix, rMatrix)
+  migHistory_m <- migrationStep(N_tilde_m, migMatrix)
   
-  migHistory_m <- computeMigrationHistory(N_m = N_tilde_m, mig_m = migMatrix)
-  N_m <- migrationStep(demographicMatrix = N_tilde_m, migMatrix = migMatrix)
-  
+  N_v <- apply(X= migHistory_m, MARGIN = 1, FUN=sum)
+  N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
+    
   generation_l <- list(demography = N_m, migration = migHistory_m)
   return(generation_l)
 }
