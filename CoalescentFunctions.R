@@ -97,13 +97,14 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
   
   #### Loop over all generations backward in time
   for(i_time in generationNumber:1){ # i_time <- 9
-    migHistory_m <- migHistory_l[[i_time]]
+    forwardMigHistory_m <- migHistory_l[[i_time]]
+    backwardMigHistory_m <- t(forwardMigHistory_m)
     N_m <- N_l[[i_time]]
     N_v <- as.vector(N_m)
     
     nodesState[!is.na(nodesState)] <- vapply(X = nodesState[!is.na(nodesState)],
                                              FUN = sampleParentalDemeInMigrationHistory,
-                                             migHistory_m = migHistory_m,
+                                             migHistory_m = backwardMigHistory_m,
                                              FUN.VALUE = c(1))
     
     ####### CANDIDATES NODES FOR COALESCENCE

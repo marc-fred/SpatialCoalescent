@@ -43,19 +43,14 @@ migrationStep <- function(demographicMatrix, migMatrix){
   # Returns : 
   #   A matrix of population size after dispersion
   N_tilde_v <- as.vector(demographicMatrix)
-  for(deme in 1:length(N_tilde_v)){
-    print(rmultinom(n = 1, size = N_tilde_v[deme], prob = migMatrix[deme,] )) 
-  }
   
-  lapply(X = 1:length(N_tilde_v),
-         FUN = function(x, N_tilde_v, migMatrix){ rmultinom(n=1, size = N_tilde_v[x], prob = migMatrix[x,])
-         },
-         N_tilde_v = N_tilde_v,
-         migMatrix = migMatrix)
-
-  N_v <- N_tilde_v %*% migMatrix
-  N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
-  return(N_m)
+  # Distribution of migrants : col = parental deme, row = destination deme 
+  migrants <- sapply(X = 1:length(N_tilde_v),
+                     FUN = function(x, N_tilde_v, migMatrix){ rmultinom(n=1, size = N_tilde_v[x], prob = migMatrix[x,])
+                     },
+                     N_tilde_v = N_tilde_v,
+                     migMatrix = migMatrix)
+  return(migrants)
 }
 
 demographicGeneration <- function(demographicMatrix, kMatrix, rMatrix, migMatrix){
@@ -70,10 +65,11 @@ demographicGeneration <- function(demographicMatrix, kMatrix, rMatrix, migMatrix
   # Returns : 
   #   A list with $demography : matrix of population size and $migration : matrix of pop flux.
   N_tilde_m <- reproductionStep(demographicMatrix, kMatrix, rMatrix)
+  migHistory_m <- migrationStep(N_tilde_m, migMatrix)
   
-  migHistory_m <- computeMigrationHistory(N_m = N_tilde_m, mig_m = migMatrix)
-  N_m <- migrationStep(demographicMatrix = N_tilde_m, migMatrix = migMatrix)
-  
+  N_v <- apply(X= migHistory_m, MARGIN = 1, FUN=sum)
+  N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
+    
   generation_l <- list(demography = N_m, migration = migHistory_m)
   return(generation_l)
 }
