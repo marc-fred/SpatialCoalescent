@@ -28,6 +28,7 @@ reproductionStep <- function(demographicMatrix, kMatrix, rMatrix){
   k_v <- as.vector(kMatrix)
   r_v <- as.vector(rMatrix)
   N_tilde_v <- mapply(FUN=function(N_v, r_v, K_v){ N_v*(1+r_v)/(1+(r_v*N_v)/K_v) }, N_v, r_v, k_v)
+  N_tilde_v <- floor(N_tilde_v)
   N_tilde_m <- matrix(data = N_tilde_v, ncol = ncol(demographicMatrix))
   return(N_tilde_m)
 }
