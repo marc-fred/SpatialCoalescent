@@ -43,6 +43,16 @@ migrationStep <- function(demographicMatrix, migMatrix){
   # Returns : 
   #   A matrix of population size after dispersion
   N_tilde_v <- as.vector(demographicMatrix)
+  for(deme in 1:length(N_tilde_v)){
+    print(rmultinom(n = 1, size = N_tilde_v[deme], prob = migMatrix[deme,] )) 
+  }
+  
+  lapply(X = 1:length(N_tilde_v),
+         FUN = function(x, N_tilde_v, migMatrix){ rmultinom(n=1, size = N_tilde_v[x], prob = migMatrix[x,])
+         },
+         N_tilde_v = N_tilde_v,
+         migMatrix = migMatrix)
+
   N_v <- N_tilde_v %*% migMatrix
   N_m <- matrix(data = N_v, ncol = ncol(demographicMatrix))
   return(N_m)
