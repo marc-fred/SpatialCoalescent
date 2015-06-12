@@ -85,7 +85,6 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
   #   A matrix describing the coalescence events : time/childNode1/childNode2/parentNode
   
   ###### INITIALISATION
-  time <- 0
   events <- 0
   headNode <- length(tipDemes)
   maxCoalEvent <- length(tipDemes) - 1
@@ -93,13 +92,14 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
   generationNumber <- length(N_l)
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
-  coalescent <- matrix(data = NA, nrow = maxCoalEvent, ncol = 4)
+  coalescent <- matrix(data = NA, nrow = maxCoalEvent, ncol = 4, dimnames = list(c(), c("coalTime", "Child1", "Child2", "Parent")))
   
   #### Loop over all generations backward in time
   for(i_time in generationNumber:1){ # i_time <- 9
     migHistory_m <- migHistory_l[[i_time]]
     N_m <- N_l[[i_time]]
-    N_v
+    N_v <- as.vector(N_m)
+    
     nodesState[!is.na(nodesState)] <- vapply(X = nodesState[!is.na(nodesState)],
                                              FUN = sampleParentalDemeInMigrationHistory,
                                              migHistory_m = migHistory_m,
@@ -125,10 +125,10 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
         
         focalDeme <- demes[x]
         # /!\ If N=0, the nodes would automatically coalesce (parents n°0 for everyone) -> make sure this does not happen !
-        if(N_m[focalDeme]==0){stop(paste("in coalescentCore you are trying to coalesce in an empty deme : in deme", x ,", N=0"))}
+        if(N_v[focalDeme]==0){stop(paste("in coalescentCore you are trying to coalesce in an empty deme : in deme", x ,", N=0"))}
         
         # Attribute parents (among N possible parents) to each node present in the deme
-        parents <- sample(N[focalDeme], size = length(candidates[[x]]), replace = TRUE) # parents[1] <- parents[2]
+        parents <- sample(N_v[focalDeme], size = length(candidates[[x]]), replace = TRUE) # parents[1] <- parents[2]
         # Test for equality of parents :
         anonymous <- which(duplicated(parents) | duplicated(parents, fromLast= TRUE))
         
@@ -150,7 +150,7 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
           lines <- seq(from = events+1, to = events + nEvents)
           parentNodes <- seq(from = headNode - nEvents + 1, to = headNode )
           # Fill time
-          coalescent[lines, 1] <- rep(x = time, times = nEvents)
+          coalescent[lines, 1] <- rep(x =  generationNumber - i_time + 1 , times = nEvents)
           # Fill Child1
           coalescent[lines, 2] <- c(children[1], parentNodes[-length(parentNodes)])
           # Fill Child2
