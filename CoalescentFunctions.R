@@ -90,21 +90,21 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
   headNode <- length(tipDemes)
   maxCoalEvent <- length(tipDemes) - 1
   nodesState <- c(tipDemes, rep(NA, maxCoalEvent))
+  generationNumber <- length(N_l)
   
   # coalescent informations : (time of coalescence, Child 1, Child 2, Parent)
   coalescent <- matrix(data = NA, nrow = maxCoalEvent, ncol = 4)
   
-  ###### REPEAT UNTIL TOTAL COALESCENCE
-  while (is.na(tail(nodesState, n=1))){
-    time <- time +1
-    
-    #### MIGRATION
+  #### Loop over all generations backward in time
+  for(i_time in generationNumber:1){ # i_time <- 9
+    migHistory_m <- migHistory_l[[i_time]]
+    N_m <- N_l[[i_time]]
+    N_v
     nodesState[!is.na(nodesState)] <- vapply(X = nodesState[!is.na(nodesState)],
-                                             FUN = function(x, N, transitionBackward)
-                                             {sample( length(N), size = 1, prob = c(transitionBackward[x,]) )},
-                                             N = N, transitionBackward = transitionBackward,
+                                             FUN = sampleParentalDemeInMigrationHistory,
+                                             migHistory_m = migHistory_m,
                                              FUN.VALUE = c(1))
-        
+    
     ####### CANDIDATES NODES FOR COALESCENCE
     # for active nodes, i.e which are not coded by NA : 
     activeNodes <- which(!is.na(nodesState))
@@ -125,7 +125,7 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
         
         focalDeme <- demes[x]
         # /!\ If N=0, the nodes would automatically coalesce (parents n°0 for everyone) -> make sure this does not happen !
-        if(N[focalDeme]==0){stop(paste("in coalescentCore you are trying to coalesce in an empty deme : in deme", x ,", N=0"))}
+        if(N_m[focalDeme]==0){stop(paste("in coalescentCore you are trying to coalesce in an empty deme : in deme", x ,", N=0"))}
         
         # Attribute parents (among N possible parents) to each node present in the deme
         parents <- sample(N[focalDeme], size = length(candidates[[x]]), replace = TRUE) # parents[1] <- parents[2]
@@ -164,6 +164,21 @@ coalescentCore <- function(tipDemes, migHistory_l, N_l){
     } # end of if there are co occuring nodes in the same deme
   } # end of while coalescence is not complete
   return(coalescent)
+}
+
+sampleParentalDemeInMigrationHistory <- function(presentDeme, migHistory_m){
+  # Function to sample a parental deme knowing the present deme, according to weights
+  # given by the migration history
+  #
+  # Args :
+  #   presentDeme : the present deme of the node
+  #   migHistory_m : the weight matrix of the migration history, col=present state, row=parent deme
+  #
+  # Returns :
+  #   The parental deme
+  #
+  parentalDeme <- sample(x = 1:nrow(migHistory_m), size = 1, replace = FALSE, prob = migHistory_m[,presentDeme])
+  return(parentalDeme)
 }
 
 timeFinder <- function(x, coal){
