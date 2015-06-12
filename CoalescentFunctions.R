@@ -22,13 +22,14 @@ simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_r
   demoHistory_l <- history_l$demoHistory
   migHistory_l <- history_l$migHistory
   
-  spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l, 
+  genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l, 
                                     demoHistory_l = demoHistory_l, 
                                     localizationData = localizationData, 
                                     nbLocus = nbLocus, 
                                     theta_rate = theta_rate,
                                     steps = steps)
   
+  return(genetValues)
 
 }
  
