@@ -62,7 +62,7 @@ local({
         theta_sigma <- uniform(n=1, min = 1, max = 10000)
         theta_Y_k <- uniform(n=1, min = 0, max = 100)
         theta_Y_r <- uniform(n=1, min = 0, max = 100)
-        theta_rate <- uniform(n=1, min=0, max = 10)
+        theta_rate <- runif(n = nbLocus, min=0, max = 0.1)
         
         # Launch simulation
         genetics <- simulateSpatialCoalescent(theta_sigma = theta_sigma, 

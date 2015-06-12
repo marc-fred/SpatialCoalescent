@@ -41,10 +41,12 @@ spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, local
   # Returns :
   #   a matrix of genetic values for each individual (rows) at each locus (column)
   
-  genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, steps, MoreArgs = list(migHistory_l = migHistory_l,
-                                                                     localizationData = localizationData,
-                                                                     demoHistory_l = demoHistory_l,
-                                                                     theta_rate = theta_rate), SIMPLIFY = TRUE, USE.NAMES = TRUE)
+  genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, 
+                        steps, theta_rate, 
+                        MoreArgs = list(migHistory_l = migHistory_l,
+                                        localizationData = localizationData,
+                                        demoHistory_l = demoHistory_l),
+                        SIMPLIFY = TRUE, USE.NAMES = TRUE)
   
   return(genetValues)
 }
