@@ -81,16 +81,8 @@ local({
         
       },
       error = function(cond) {
-        errorFileName = paste("stderr_", x , ".txt", sep="")
-        con <- file(paste("Simulations/", errorFileName, sep=""), open = "w")
-        sink(file = con, type = "message", append =TRUE)
-
-        message(c("theta_sigma : ", as.character(theta_sigma)), con=con)
-        message(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
-        message(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
-        message(c("theta_rate : ", as.character(theta_rate)), con=con)
-        message("Here's the original warning message:")
-        write(paste("MY ERROR:", cond), file=con, append=TRUE)
+        # Write error
+        writeErrorDataOutputFile(cond, x, theta_sigma, theta_Y_k, theta_Y_r,theta_rate)
       },
       finally={
         # Send progress update
