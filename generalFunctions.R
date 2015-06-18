@@ -109,8 +109,8 @@ expectedMeanHeterozygosity <- function(mutationMatrix, LocusInColumns = TRUE){
 
 computeGeographicalClustersForSample <- function(dataCoord, nbCl = 4, max.iter = 5, tolerance = 0.1){
   # construct orig.data
-  Latitude <- dataCoord$Latitude
-  Longitude <- dataCoord$Longitude
+  Latitude <- dataCoord[,"x"]
+  Longitude <- dataCoord[,"y"]
   LocationID <- 1:nrow(dataCoord)
   orig.data <- data.frame(Latitude, Longitude, LocationID)
   
@@ -249,25 +249,7 @@ dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot
   
   return(ret.val)
   
-#   # Convert to radian
-#   as_radians = function(theta=0){
-#     return(theta * pi / 180)
-#   }
-#   
-#   calc_dist = function(fr, to) {
-#     lat1 = as_radians(fr$lat)
-#     lon1 = as_radians(fr$lon)
-#     lat2 = as_radians(to$lat)
-#     lon2 = as_radians(to$lon)
-#     a = 3963.191;
-#     b = 3949.903;
-#     numerator = ( a^2 * cos(lat2) )^2 + ( b^2 * sin(lat2) ) ^2
-#     denominator = ( a * cos(lat2) )^2 + ( b * sin(lat2) )^2
-#     radiusofearth = sqrt(numerator/denominator) #Accounts for the ellipticity of the earth.
-#     d = radiusofearth * acos( sin(lat1) * sin(lat2) + cos(lat1)*cos(lat2)*cos(lon2 - lon1) )
-#     d.return = list(distance_miles=d)
-#     return(d.return)
-#   }
+
 #   
 #   raw.og = read.csv("http://statistical-research.com/wp-content/uploads/2013/11/sample_geo.txt", header=T, sep="\t")
 #   orig.data = raw.og[,1:3]
@@ -279,4 +261,24 @@ dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot
 #   library(maps)
 #   map("state", add=T)
 #   points(cl_constrain$centers[,c(2,1)], pch=4, cex=2, col='orange', lwd=4)
+}
+
+# Convert to radian
+as_radians = function(theta=0){
+  return(theta * pi / 180)
+}
+
+calc_dist = function(fr, to) {
+  lat1 = as_radians(fr$lat)
+  lon1 = as_radians(fr$lon)
+  lat2 = as_radians(to$lat)
+  lon2 = as_radians(to$lon)
+  a = 3963.191;
+  b = 3949.903;
+  numerator = ( a^2 * cos(lat2) )^2 + ( b^2 * sin(lat2) ) ^2
+  denominator = ( a * cos(lat2) )^2 + ( b * sin(lat2) )^2
+  radiusofearth = sqrt(numerator/denominator) #Accounts for the ellipticity of the earth.
+  d = radiusofearth * acos( sin(lat1) * sin(lat2) + cos(lat1)*cos(lat2)*cos(lon2 - lon1) )
+  d.return = list(distance_miles=d)
+  return(d.return)
 }
