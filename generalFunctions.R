@@ -79,13 +79,13 @@ expectedMeanHeterozygosity <- function(mutationMatrix, LocusInColumns = TRUE){
   
   if(LocusInColumns == TRUE){
     margin <- 2
-    n_ind <- nrow(genetics)
-    n_locus <- ncol(genetics)
+    n_ind <- nrow(mutationMatrix)
+    n_locus <- ncol(mutationMatrix)
     
   }else if (LocusInColumns == FALSE){
     margin <- 1
-    n_ind <- ncol(genetics)
-    n_locus <- nrow(genetics)
+    n_ind <- ncol(mutationMatrix)
+    n_locus <- nrow(mutationMatrix)
     
   }else{
     stop("LocusInColumn is not a boolean")
@@ -140,6 +140,28 @@ computeGeographicalClustersForSample <- function(dataCoord, nbCl = 4, max.iter =
 
 dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot.iter=TRUE) {
   # http://statistical-research.com/spatial-clustering-with-equal-sizes/?utm_source=rss&utm_medium=rss&utm_campaign=spatial-clustering-with-equal-sizes
+  
+  
+  # Convert to radian
+  as_radians = function(theta=0){
+    return(theta * pi / 180)
+  }
+  
+  calc_dist = function(fr, to) {
+    lat1 = as_radians(fr$lat)
+    lon1 = as_radians(fr$lon)
+    lat2 = as_radians(to$lat)
+    lon2 = as_radians(to$lon)
+    a = 3963.191;
+    b = 3949.903;
+    numerator = ( a^2 * cos(lat2) )^2 + ( b^2 * sin(lat2) ) ^2
+    denominator = ( a * cos(lat2) )^2 + ( b * sin(lat2) )^2
+    radiusofearth = sqrt(numerator/denominator) #Accounts for the ellipticity of the earth.
+    d = radiusofearth * acos( sin(lat1) * sin(lat2) + cos(lat1)*cos(lat2)*cos(lon2 - lon1) )
+    d.return = list(distance_miles=d)
+    return(d.return)
+  }
+  
   fr = to = NULL
   
   r.k.start = sample(seq(1:k))
@@ -261,24 +283,4 @@ dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot
 #   library(maps)
 #   map("state", add=T)
 #   points(cl_constrain$centers[,c(2,1)], pch=4, cex=2, col='orange', lwd=4)
-}
-
-# Convert to radian
-as_radians = function(theta=0){
-  return(theta * pi / 180)
-}
-
-calc_dist = function(fr, to) {
-  lat1 = as_radians(fr$lat)
-  lon1 = as_radians(fr$lon)
-  lat2 = as_radians(to$lat)
-  lon2 = as_radians(to$lon)
-  a = 3963.191;
-  b = 3949.903;
-  numerator = ( a^2 * cos(lat2) )^2 + ( b^2 * sin(lat2) ) ^2
-  denominator = ( a * cos(lat2) )^2 + ( b * sin(lat2) )^2
-  radiusofearth = sqrt(numerator/denominator) #Accounts for the ellipticity of the earth.
-  d = radiusofearth * acos( sin(lat1) * sin(lat2) + cos(lat1)*cos(lat2)*cos(lon2 - lon1) )
-  d.return = list(distance_miles=d)
-  return(d.return)
 }
