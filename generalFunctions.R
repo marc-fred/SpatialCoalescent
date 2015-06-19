@@ -261,7 +261,7 @@ dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot
     cat("\n Error ",error.diff," Hours remain from iterations ",hour.diff,"\n")
     
     # Write out iterations. Can later be used as a starting point if iterations need to pause
-    write.table(orig.data, paste("C:\\optimize_iteration_",iteration,"_instore_data.csv", sep=""), sep=",", row.names=F)
+    # write.table(orig.data, paste("C:\\optimize_iteration_",iteration,"_instore_data.csv", sep=""), sep=",", row.names=F)
   }
   
   centers = data.frame(mu)
@@ -283,4 +283,17 @@ dirichletClusters_constrained = function(orig.data, k, max.iter, tolerance, plot
 #   library(maps)
 #   map("state", add=T)
 #   points(cl_constrain$centers[,c(2,1)], pch=4, cex=2, col='orange', lwd=4)
+}
+
+meanNumberofAllelesByLocusByLocality <- function(dtfr){
+  nbAllelesByLocality <- by(data = dtfr,
+                            INDICES = dtfr$cluster,
+                            FUN = function(d){
+                              # print(d)
+                              apply(X = d[, 5:ncol(d)], MARGIN = 2, FUN = function(x) length(unique(x)))
+                              # print(means)
+                            })
+  
+  stat <- sapply(nbAllelesByLocality, mean)
+  return(stat)
 }
