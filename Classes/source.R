@@ -1,0 +1,11 @@
+setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
+source("Environment.R")
+source("Function.R")
+source("NicheFunction.R")
+source("Parameters.R")
+source("Model.R")
+
+new("NicheFunction")
+new("Environment")
+new("Parameters")
+new("Model")

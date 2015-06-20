@@ -1,0 +1,2 @@
+setClass("NicheFunction",
+         contains = "Function")

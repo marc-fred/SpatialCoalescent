@@ -1,0 +1,2 @@
+setClass("NicheModel",
+         contains = "Model")
