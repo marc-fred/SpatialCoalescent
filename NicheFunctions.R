@@ -11,6 +11,11 @@ constant <- function(x,Y)
   return(Y)
 }
 
+gaussian <- function(x, mean, sd){
+  y <- dnorm(x, mean, sd)
+  return(y)
+}
+
 constructEnvironmentalDemographicMatrix <- function(env, param){
   # Compute a demographic variable from environmental data, with constant niche function
   #
@@ -30,4 +35,30 @@ constructEnvironmentalDemographicMatrix <- function(env, param){
              coalescence is impossible to simulate"))
   }
   return(matrix)
+}
+
+ComputeVariableFunction <- function(...){
+  # Apply function with variable arguments over a matrix
+  #
+  # Args:
+  #
+  #   ... various lists of form list(matrix, function, list())
+  #
+  # Returns:
+  #   A list of matrix with length equal to the number of lists passed as arguments
+  
+  ellipsisArgs <- list(...)
+  l <- lapply( X = ellipsisArgs,
+               FUN = function(model){
+                 apply(X = model[[1]],
+                       MARGIN = c(1,2),
+                       FUN = function(x, model){
+                         args <- c(x = x, model[[3]])
+                         do.call(what = model[[2]], args)
+                       },
+                       model = model
+                 )
+               }
+  )
+  return(l)
 }
