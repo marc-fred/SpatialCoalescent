@@ -11,7 +11,7 @@ constant <- function(x,Y)
   return(Y)
 }
 
-gaussian <- function(x, mean, sd){
+gaussianNiche <- function(x, mean, sd){
   y <- dnorm(x, mean, sd)
   return(y)
 }
