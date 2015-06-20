@@ -299,10 +299,36 @@ meanNumberofAllelesByLocusByLocality <- function(dtfr){
 }
 
 myprint <- function(m) {
-  m <- list(m)
   # Print a list of numeric matrix in color levels 
+  m <- list(m)
   rl = lapply(m, function(X) raster(X))
   d <- stack(rl)
   spplot(d)
 }
  
+parallelWrapper <- function(func, numJobs, cores = 2, ...) {
+  local({
+    # open a connection to a temporary file : pipe between master process and child
+    f <- fifo(tempfile(), open="w+b", blocking=T)
+    if (inherits(parallel:::mcfork(), "masterProcess")) {
+      # Child
+      progress <- 0.0
+      while (progress < 1 && !isIncomplete(f)) {
+        msg <- readBin(f, "double")
+        progress <- progress + as.numeric(msg)
+        # send a message in C-style
+        cat(sprintf("Progress: %.2f%%\n", progress * 100))
+      } 
+      # close the current child process, informing master process
+      parallel:::mcexit()
+    }
+        
+    mclapply(X = 1:numJobs, FUN = function(x, ...){ 
+      func(...)
+    }, ...,
+    mc.cores = cores,
+    mc.preschedule = FALSE)
+    
+  })
+  cat("Simulations Done\n")
+}
