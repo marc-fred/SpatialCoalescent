@@ -62,3 +62,31 @@ ComputeVariableFunction <- function(...){
   )
   return(l)
 }
+
+
+arithmeticsMeanOverListOfMatrix <-function(myList){
+  # Computes  the arithmetic mean matrix on an element by element basic
+  #
+  # Args:
+  #   myList : a list of matrixof same dimensions
+  #
+  # Returns:
+  #   A matrix
+  Reduce("+", myList) / length(myList)  
+}
+
+demoEnvironmentalVariableConstructor <-function(...){
+  # Compute a response demographic variable according to a niche function
+  # environmental variable
+  #
+  # Args:
+  #   ... : various lists of form list(matrix, function, list()) where
+  #         the elements of the third elements are named according to the
+  #         names of the arguments of the function called
+  #
+  # Returns:
+  #   A matrix
+  myList <- ComputeVariableFunction(...)
+  meanLandscape <- arithmeticsMeanOverListOfMatrix(myList) 
+  return(meanLandscape)
+}
