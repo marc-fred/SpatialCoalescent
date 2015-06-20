@@ -297,3 +297,12 @@ meanNumberofAllelesByLocusByLocality <- function(dtfr){
   stat <- sapply(nbAllelesByLocality, mean)
   return(stat)
 }
+
+myprint <- function(m) {
+  m <- list(m)
+  # Print a list of numeric matrix in color levels 
+  rl = lapply(m, function(X) raster(X))
+  d <- stack(rl)
+  spplot(d)
+}
+ 
