@@ -32,7 +32,8 @@ distanceMatrixFromRaster <- function(object){
   return(dist)
 }
 
-constructMigrationMatrix<- function(dist, param){
+
+migrationMatrixConstructor <- function(...){
   # Computes a migration matrix given a distance matrix, gaussian kernel
   #
   # Args : 
@@ -41,8 +42,7 @@ constructMigrationMatrix<- function(dist, param){
   #
   # Returns :
   #   A migration matrix, with all rows summing to 1
-  kernel <- apply(dist, c(1,2), gaussian, sigma = param)
+  kernel <- demoEnvironmentalVariableConstructor(...)
   migrationRates <- kernel/rowSums(kernel)
   return(migrationRates)
 }
-
