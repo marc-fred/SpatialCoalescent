@@ -41,10 +41,7 @@ mk2 <- new("Model", varName = "Température",  varEnv = temp,
                    param = list(X0 = 3, slope = 2)))
 mk2
 
-Kmodel <- new("KModel", models= list(mk1, mk2))
-
-              myWrite(b, file = "toto.txt")
-
-getwd()
-new("Function",name= "Gaussian", fun = dnorm, param = list(mean = 0, sd = 1))
-show(a)
+Kmodel <- new("KModel", models = list(mk1, mk2))
+Kmodel
+Rmodel <- new("RModel", models = list(mk1, mk2))
+Rmodel
