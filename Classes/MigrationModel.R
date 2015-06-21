@@ -1,0 +1,2 @@
+setClass("MigrationModel",
+         contains = "Model")
