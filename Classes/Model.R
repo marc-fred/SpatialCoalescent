@@ -17,19 +17,13 @@ setMethod("show", "Model",
             ToStream(object)
           })
 
-setGeneric(
-  name = "ToStream",
-  def = function(object, con, description) { return(standardGeneric("ToStream"))})
-
-setGeneric(
-  name = "myWrite",
-  def = function(object, file) { return(standardGeneric("myWrite"))})
-
 setMethod(f="ToStream",
           signature = "Model",
           definition = function(object){
-            cat("MODEL FOR ENVIRONMENTAL VARIABLE", object@varName, ":\n")
+            cat("###", object@varName, "model\n")
+            cat("\t")
             ToStream(object@fun)
+            cat("\n")
           }
 )
 
@@ -41,3 +35,6 @@ setMethod(f="myWrite",
             sink()
           }
 )
+
+
+
