@@ -12,15 +12,16 @@ setClass("Function",
 
 setMethod("show", "Function",
           function(object){
+            ToStream(object)
+          })
+
+setMethod(f="ToStream",
+          signature = "Function",
+          definition = function(object){        
             cat("Function", object@name, "with parameters","\t")
             pnames <- lapply(X = 1:length(object@param),
                              FUN = function(x, l){ paste(names(l)[x], "=", l[x], sep ="")},
-                             l = object@param
-            )
-            for(i in 1:length(pnames)){
-              cat(pnames[[i]], "\t" )
-            }
+                             l = object@param)
+            
+            for(i in 1:length(pnames)) cat(pnames[[i]], "\t" )
           })
-
-new("Function", fun = dnorm, param = list(mean = 0, sd = 1))
-new("Function", name = "linear", fun = linearTwoParameters, param = list(X0 = 0, slope = 1))
