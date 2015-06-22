@@ -14,3 +14,15 @@ setGeneric(
 setGeneric(
   name = "getParameters",
   def = function(object) { return(standardGeneric("getParameters"))})
+
+setGeneric(
+  name = "getValues",
+  def = function(object) { return(standardGeneric("getValues"))})
+
+setGeneric(
+  name = "applyFunction",
+  def = function(object, xval) { return(standardGeneric("applyFunction"))})
+
+setGeneric(
+  name = "applyModel",
+  def = function(object) { return(standardGeneric("applyModel"))})
