@@ -36,3 +36,11 @@ setMethod(f="getParameters",
                    object = object
                    )
           })
+
+setMethod(f="applyFunction",
+          signature = "Function",
+          definition = function(object, xval){
+            allArgs <- c(list(x = xval), object@param)
+            y <- do.call(what = object@fun, args = allArgs)
+            return(y)
+          })
