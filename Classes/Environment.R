@@ -1,4 +1,4 @@
-setClass("Environment",
+setClass("Lattice",
          representation(values = "matrix"),
          prototype(values = matrix()),
          validity = function(object) { ## object : nom reserve !
@@ -8,12 +8,14 @@ setClass("Environment",
              return(TRUE)
          })
 
-setMethod("show", "Environment",
+setClass("Environment", contains = "Lattice")
+
+setMethod("show", "Lattice",
           function(object){
             ToStream(object)
           })
 
-setMethod("myPlot", "Environment",
+setMethod("myPlot", "Lattice",
           function(object){
             m <- list(object@values)
             rl = lapply(m, function(X) raster(X))
@@ -21,13 +23,13 @@ setMethod("myPlot", "Environment",
             spplot(d)
           })
 
-setMethod("ToStream", "Environment",
+setMethod("ToStream", "Lattice",
           function(object){
             show(object@values)
           })
 
 setMethod(f="getValues",
-          signature = "Environment",
+          signature = "Lattice",
           definition = function(object){
             return(object@values)
           })

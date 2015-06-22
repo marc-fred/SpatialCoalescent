@@ -26,3 +26,7 @@ setGeneric(
 setGeneric(
   name = "applyModel",
   def = function(object) { return(standardGeneric("applyModel"))})
+
+setGeneric(
+  name = "computeDistanceMatrix",
+  def = function(object, con, description) { return(standardGeneric("computeDistanceMatrix"))})

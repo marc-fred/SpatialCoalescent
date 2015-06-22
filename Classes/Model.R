@@ -1,9 +1,9 @@
 setClass("Model",
          representation(varName = "character",
-                        varEnv = "Environment",
+                        varEnv = "Lattice",
                         fun = "Function"),
          prototype(varName = "Undefined",
-                   varEnv = new("Environment"),
+                   varEnv = new("Lattice"),
                    fun = new("Function")),
          validity = function(object) { ## object : nom reserve !
            if (FALSE)

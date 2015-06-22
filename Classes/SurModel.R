@@ -31,6 +31,8 @@ setClass("KModel", contains = "SurModel")
 
 setClass("RModel", contains = "SurModel")
 
+setClass("MigModel", contains = "SurModel")
+
 
 setMethod(f="ToStream",
           signature = "RModel",
