@@ -39,3 +39,21 @@ setMethod("show", "SurModel",
           definition = function(object){
             ToStream(object)
           })
+
+setMethod(f="getParameters",
+          signature = "KModel",
+          definition = function(object){
+            p <-  sapply(X = object@models,
+                         FUN = function(x){paste("K.", getParameters(x), sep="")})
+            return(as.vector(p))
+          }
+)
+
+setMethod(f="getParameters",
+          signature = "RModel",
+          definition = function(object){
+            p <-  sapply(X = object@models,
+                         FUN = function(x){paste("R.", getParameters(x), sep="")})
+            return(as.vector(p))
+          }
+)
