@@ -10,3 +10,7 @@ setGeneric(
 setGeneric(
   name = "myPlot",
   def = function(object) { return(standardGeneric("myPlot"))})
+
+setGeneric(
+  name = "getParameters",
+  def = function(object) { return(standardGeneric("getParameters"))})
