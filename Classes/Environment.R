@@ -25,3 +25,9 @@ setMethod("ToStream", "Environment",
           function(object){
             show(object@values)
           })
+
+setMethod(f="getValues",
+          signature = "Environment",
+          definition = function(object){
+            return(object@values)
+          })
