@@ -1,3 +1,4 @@
+setwd("/home/arnaudb/Documents/SpatialCoalescent")
 source("CoalescentFunctions.R")
 source("NicheFunctions.R")
 source("DispersionFunctions.R")
@@ -29,8 +30,6 @@ myprint(E1)
 E2 <- as.matrix(rasterE2)
 myprint(E2)
 
-land <- E1 ; land[] <- NA
-
 R_m <- demoEnvironmentalVariableConstructor(list(E1, linearTwoParameters, list(X0 = 3, slope = 2)),
                                             list(E2, gaussianNiche, list(mean = 0, sd = 1)))
 myprint(R_m)
@@ -41,6 +40,7 @@ myprint(K_m)
 dist_m <- distanceMatrixFromRaster(object = rasterE1)/1000
 M_m <- migrationMatrixConstructor(list(dist_m , gaussianDisp, list(sd = 1)))
 
+land <- E1 ; land[] <- NA
 demoInit <- createInitialDemographicsLandscape(land)
 myprint(demoInit)
 
@@ -51,7 +51,7 @@ history <- demographicSimulation(numberOfGenerations = 10,
                                   migMatrix = M_m)
 
 demoHistory_l <- history$demoHistory
-myprint(demoHistory_l)
+myprint(m = demoHistory_l)
 migHistory_l <- history$migHistory
 myprint(migHistory_l)
 
