@@ -8,6 +8,10 @@ setGeneric(
   def = function(object, file) { return(standardGeneric("myWrite"))})
 
 setGeneric(
+  name = "getValues",
+  def = function(object) { return(standardGeneric("getValues"))})
+
+setGeneric(
   name = "myPlot",
   def = function(object) { return(standardGeneric("myPlot"))})
 
