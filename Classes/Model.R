@@ -36,5 +36,13 @@ setMethod(f="myWrite",
           }
 )
 
-
-
+setMethod(
+  f = "getParameters",
+  signature = "Model",
+  definition =  function(object){
+    vapply(X = getParameters(object@fun),
+           FUN = function(x) {paste(object@varName, x, sep =".")},
+           FUN.VALUE = c("a"),
+           USE.NAMES = FALSE
+    )
+  })
