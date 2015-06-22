@@ -1,7 +1,7 @@
 setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
+setwd("/home/arnaudb/Documents/SpatialCoalescent/Classes")
 library(methods)
 library(raster)
-source("NicheFunction.R")
 source("Generics.R")
 source("Environment.R")
 source("Function.R")
@@ -43,5 +43,8 @@ mk2
 
 Kmodel <- new("KModel", models = list(mk1, mk2))
 Kmodel
+getParameters(Kmodel)
+
 Rmodel <- new("RModel", models = list(mk1, mk2))
 Rmodel
+getParameters(Rmodel)
