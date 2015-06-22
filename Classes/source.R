@@ -29,7 +29,7 @@ mk2
 Kmodel <- new("KModel", models = list(mk1, mk2))
 Kmodel
 getParameters(Kmodel)
-applyModel(KModel)
+applyModel(Kmodel)
 
 Rmodel <- new("RModel", models = list(mk1, mk2))
 Rmodel
