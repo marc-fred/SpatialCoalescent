@@ -1,47 +1,85 @@
-setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
+# setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
+setwd("/home/arnaudb/Documents/SpatialCoalescent")
 library(methods)
 library(raster)
-source("NicheFunction.R")
-source("Generics.R")
-source("Environment.R")
-source("Function.R")
-source("Model.R")
-source("SurModel.R")
+source("Classes/Generics.R")
+source("Classes/Environment.R")
+source("Classes/Function.R")
+source("Classes/AbstractModel.R")
+source("Classes/Model.R")
+source("Classes/MigModel.R")
+source("Classes/SurModel.R")
+source("Classes/RasterLayer.R")
+source("CoalescentFunctions.R")
+source("NicheFunctions.R")
+source("DispersionFunctions.R")
+source("MutationFunctions.R")
+source("PriorFunctions.R")
+source("MarkovProcess.R")
+source("generalFunctions.R")
+source("demographicGrowth.R")
 
-linearTwoParameters <- function(x,X0,slope)
-{
-  # Computes a linear response within the enveloppe, else returns 0.
-  #
-  # Args:
-  #   x: numeric providing the values of variable to calculate reaction norm
-  #   X0: value of the function at x=0
-  #   slope: the value of the slope of the function
-  #
-  # Returns:
-  #   The value of the reaction norm
-  return(slope*x-slope*X0)
-}
+# "Real" Data
+rasterE1 <- raster(x = matrix(data = sample(1:100, 9), ncol = 3),
+                   xmn = 40, xmx = 50, ymn = 0, ymx = 10, crs = "+proj=longlat +datum=WGS84")
 
+rasterE2 <- raster(x = matrix(data = sample(1:100, 9), ncol = 3),
+                   xmn = 40, xmx = 50, ymn = 0, ymx = 10, crs = "+proj=longlat +datum=WGS84")
 
-pluie <- new("Environment", values= matrix(1:9, 3))
-temp <- new("Environment", values= matrix(1:9, 3))
+dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
+localizationData <- cellFromXY(rasterE1, dataCoord)
+
+nbLocus <- 10
+steps <- sample(1:10, size = nbLocus ) 
+
+# Model Implementation
+pluie <- new("Environment", values= as.matrix(rasterE1))
+temp <- new("Environment", values= as.matrix(rasterE2))
 myPlot(pluie)
 
-mk1 <- new("Model", varName = "Pluviométrie",  varEnv = pluie,
-         fun = new("Function",
-                   name = "Linear", 
-                   fun = linearTwoParameters, 
-                   param = list(X0 = 0, slope = 1)))
-mk1
+mk1 <- new("Model", varName = "Pluviométrie",  varEnv = pluie, fun = new("Function",
+                                                                         name = "Linear", 
+                                                                         fun = linearTwoParameters, 
+                                                                         param = list(f_0 = 0, slope = 1)))
 
-mk2 <- new("Model", varName = "Température",  varEnv = temp,
-         fun = new("Function",
-                   name = "Linear", 
-                   fun = linearTwoParameters, 
-                   param = list(X0 = 3, slope = 2)))
-mk2
+mk2 <- new("Model", varName = "Température",  varEnv = temp, fun = new("Function",
+                                                                       name = "Linear", 
+                                                                       fun = linearTwoParameters, 
+                                                                       param = list(f_0 = 0, slope = 2)))
 
 Kmodel <- new("KModel", models = list(mk1, mk2))
-Kmodel
+K_m <- applyModel(Kmodel)
+
 Rmodel <- new("RModel", models = list(mk1, mk2))
-Rmodel
+R_m <- applyModel(Rmodel)
+
+distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
+migFun <- new("Function", name = "Gaussian", fun = gaussianDisp, param = list(mean=0, sd = 100 ))
+migModel <- new("MigModel", varName = "Distances", varEnv = distances, fun = migFun)
+M_m <- applyModel(migModel)
+
+demoInit <- createInitialDemographicsLandscape(K_m)
+myprint(demoInit)
+
+history <- demographicSimulation(numberOfGenerations = 20,
+                                 demographicMatrix = demoInit, 
+                                 kMatrix = K_m, 
+                                 rMatrix = R_m,
+                                 migMatrix = M_m)
+
+demoHistory_l <- history$demoHistory
+myprint(m = demoHistory_l)
+migHistory_l <- history$migHistory
+myprint(migHistory_l)
+
+genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l, 
+                                                 demoHistory_l = demoHistory_l, 
+                                                 localizationData = localizationData, 
+                                                 nbLocus = nbLocus, 
+                                                 theta_rate = runif(n = nbLocus, min=0.1, max = 0.5),
+                                                 steps = steps)
+
+
+getParameters(Kmodel)
+getParameters(Rmodel)
+

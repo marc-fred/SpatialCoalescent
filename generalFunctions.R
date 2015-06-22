@@ -299,9 +299,13 @@ meanNumberofAllelesByLocusByLocality <- function(dtfr){
 }
 
 myprint <- function(m) {
-  # Print a list of numeric matrix in color levels 
-  m <- list(m)
-  rl = lapply(m, function(X) raster(X))
+  # Print a list of numeric matrix in color levels
+  if(is.matrix(m)){
+    m <- list(m)
+  }else if (is.list(m)){
+    # do nothing
+  }else{ stop("object type not implemented for myprint") }
+  rl = lapply(X = m, FUN = function(X) raster(X))
   d <- stack(rl)
   spplot(d)
 }

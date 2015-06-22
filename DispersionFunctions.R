@@ -1,4 +1,4 @@
-gaussianDisp <- function(x, sd){
+gaussianDisp <- function(x, mean, sd){
   # Computes a value for kernel dispersion using a gaussian model, i.e. a simple normal density distribution (sigma, mean=0)
   #
   # Args: 
@@ -7,7 +7,7 @@ gaussianDisp <- function(x, sd){
   #
   # Returns:
   #   The value of dispersion kernel for x
-  return(dnorm(x, mean = 0, sd = sd, log = FALSE))
+  return(dnorm(x, mean = mean, sd = sd, log = FALSE))
 }
 
 

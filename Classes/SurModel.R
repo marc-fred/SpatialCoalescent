@@ -10,9 +10,28 @@ setClass("SurModel",
          }
 )
 
+setMethod(
+  f = "show",
+  signature = "SurModel",
+  definition = function(object){
+    ToStream(object)
+  })
+
+setMethod(
+  f = "applyModel", 
+  signature = "SurModel",
+  definition = function(object){
+    rawList <- lapply(X = object@models,
+                      FUN = applyModel)
+    meanVal <- Reduce("+", rawList) / length(rawList)
+    return(meanVal)
+  })
+
 setClass("KModel", contains = "SurModel")
 
 setClass("RModel", contains = "SurModel")
+
+setClass("MigModel", contains = "SurModel")
 
 
 setMethod(f="ToStream",
@@ -35,7 +54,21 @@ setMethod(f="ToStream",
           }
 )
 
-setMethod("show", "SurModel",
+
+setMethod(f="getParameters",
+          signature = "KModel",
           definition = function(object){
-            ToStream(object)
-          })
+            p <-  sapply(X = object@models,
+                         FUN = function(x){paste("K.", getParameters(x), sep="")})
+            return(as.vector(p))
+          }
+)
+
+setMethod(f="getParameters",
+          signature = "RModel",
+          definition = function(object){
+            p <-  sapply(X = object@models,
+                         FUN = function(x){paste("R.", getParameters(x), sep="")})
+            return(as.vector(p))
+          }
+)
