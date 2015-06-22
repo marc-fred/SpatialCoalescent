@@ -25,3 +25,14 @@ setMethod(f="ToStream",
             
             for(i in 1:length(pnames)) cat(pnames[[i]], "\t" )
           })
+
+setMethod(f="getParameters",
+          signature = "Function",
+          definition = function(object){
+            sapply(X = 1:length(object@param),
+                   FUN = function(x, object){
+                     paste(object@name, ".", names(object@param)[[x]], " = ", object@param[[x]], sep ="")
+                   },
+                   object = object
+                   )
+          })
