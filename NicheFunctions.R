@@ -11,7 +11,7 @@ constant <- function(x,Y)
   return(Y)
 }
 
-linearTwoParameters <- function(x,X0,slope)
+linearTwoParameters <- function(x, f_0, slope)
 {
   # Computes a linear response within the enveloppe, else returns 0.
   #
@@ -22,7 +22,8 @@ linearTwoParameters <- function(x,X0,slope)
   #
   # Returns:
   #   The value of the reaction norm
-  return(slope*x-slope*X0)
+  f <- f_0 + slope*x
+  return(f)
 }
 
 gaussianNiche <- function(x, mean, sd){
