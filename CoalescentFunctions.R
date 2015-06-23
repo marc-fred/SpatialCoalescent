@@ -1,5 +1,5 @@
 
-spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, localizationData, nbLocus, theta_rate, steps){
+spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, localizationData, nbLocus, theta_rate, steps, rasterLandscape){
   # Repeat coalescence simulation, once for each locus
   #
   # Args :
@@ -7,6 +7,25 @@ spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, local
   # Returns :
   #   a matrix of genetic values for each individual (rows) at each locus (column)
   
+  # localizationData gives cell number from left to right, then top to bottom
+  # raster(demoHistory_l[[length(demoHistory_l)]])[2]
+  # c(demoHistory_l[[length(demoHistory_l)]])[2]
+  localizationData <- cellFromXY(rasterE1, dataCoord)
+  
+  # checking for possibility of coalescence : 
+  # ACCEPT if sampled individuals in localization data are well simulated by demoHistory_l
+  # REJECT if the simulated data did not agree with real data
+  r <- raster(demoHistory_l[[length(demoHistory_l)]])
+  if( any(sapply(X = unique(localizationData), FUN = function(x) { r[x] == 0}))){
+    stop("\n*** Demographic simulation ***\n
+         The simulated population did not reach the demes where\n
+         real data were sampled. Conclude to aberrant values for\n
+         demographicparameters values\n ")
+  }
+
+    unique(localizationData)
+
+    
   genetValues <- mapply(FUN = spatialCoalescenceForOneLocus, 
                         steps, theta_rate, 
                         MoreArgs = list(migHistory_l = migHistory_l,
