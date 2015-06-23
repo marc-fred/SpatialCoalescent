@@ -80,11 +80,12 @@ myprint(m = demoHistory_l)
 migHistory_l <- history$migHistory
 myprint(migHistory_l)
 
+theta_rate = runif(n = nbLocus, min=0.1, max = 0.5)
 genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l,
                                                  demoHistory_l = demoHistory_l, 
                                                  localizationData = localizationData, 
                                                  nbLocus = nbLocus, 
-                                                 theta_rate = runif(n = nbLocus, min=0.1, max = 0.5),
+                                                 theta_rate = theta_rate,
                                                  steps = steps,
                                                  rasterLandscape = rasterE1)
 

@@ -23,7 +23,7 @@ setMethod(
   f = "applyModel",
   signature = "MigModel",
   definition =  function(object){
-    callNextMethod(object)
+    meanVal <- callNextMethod(object)
     migRates <- meanVal/rowSums(meanVal)
     return(migRates)
   }
