@@ -1,2 +1,0 @@
-setClass("MigrationModel",
-         contains = "Model")

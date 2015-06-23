@@ -10,17 +10,6 @@ setMethod(
     return(migRates)
   })
 
-setMethod("initialize",
-          "MigModel",
-          function(.Object, varName, varEnv, fun) {
-            print(" ----- initialize from MigModel called---- ")
-            .Object@varName <- varName
-            .Object@varEnv <- varEnv
-            .Object@fun <- fun
-            # validObject(.Object) ## valide l'objet
-            return(.Object)
-          })
-
 setMethod(f="getParameters",
           signature = "MigModel",
           definition = function(object){
