@@ -21,3 +21,11 @@ setMethod("initialize",
             return(.Object)
           })
 
+setMethod(f="getParameters",
+          signature = "MigModel",
+          definition = function(object){
+            p <-  sapply(X = callNextMethod(),
+                         FUN = function(x){paste("Mig", x, sep=".")})
+            return(as.vector(p))
+          }
+)
