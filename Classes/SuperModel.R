@@ -14,7 +14,8 @@ setMethod(
   signature = "SuperModel",
   definition = function(object){
     ToStream(object)
-  })
+  }
+)
 
 setMethod(
   f="ToStream",

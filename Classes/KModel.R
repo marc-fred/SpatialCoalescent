@@ -5,7 +5,7 @@ setMethod(
   signature = "KModel",
   definition = function(object){
     cat("K model --------------------------------------- \n")
-    callNextMethod()
+    callNextMethod(object)
   }
 )
 

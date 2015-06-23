@@ -7,8 +7,10 @@ source("Classes/Environment.R")
 source("Classes/Function.R")
 source("Classes/AbstractModel.R")
 source("Classes/Model.R")
+source("Classes/SuperModel.R")
+source("Classes/KModel.R")
+source("Classes/RModel.R")
 source("Classes/MigModel.R")
-source("Classes/SurModel.R")
 source("Classes/RasterLayer.R")
 source("CoalescentFunctions.R")
 source("NicheFunctions.R")
@@ -44,7 +46,7 @@ mk1 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = l
 
 prior3 <- Function(fun = uniform, param = list(min = 100, max = 500))
 prior4 <- Function(fun = uniform, param = list(min = 50, max = 60))
-mk2 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior3, prior4)))
+mk2 <- model(varEnv = temp, fun = Function(fun = linearTwoParameters, param = list(prior3, prior4)))
 
 Kmodel <- new("KModel", models = list(mk1, mk2))
 
