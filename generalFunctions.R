@@ -1,4 +1,4 @@
-writeDataOutputInFile <- function(theta_sigma, theta_Y_k, theta_Y_r, theta_rate, data, file){
+writeDataOutputInFile <- function(Kmodel, Rmodel, MigModel, theta_rate, genetData, file){
   # Writes arguments value and genetic data in file
   #
   # Args:
@@ -8,12 +8,17 @@ writeDataOutputInFile <- function(theta_sigma, theta_Y_k, theta_Y_r, theta_rate,
   dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
   
   con <- file(paste("Simulations/", file, sep=""), open = "w")
-  writeLines(c("theta_sigma : ", as.character(theta_sigma)), con=con)
-  writeLines(c("theta_Y_k : ", as.character(theta_Y_k)), con=con)
-  writeLines(c("theta_Y_r : ", as.character(theta_Y_r)), con=con)
-  writeLines(c("theta_rate : ", as.character(theta_rate)), con=con)
+  writeLines(text = "MODEL :\n", con = con)
+  writeLines(text = c(getParameters(Kmodel),
+                      getParameters(Rmodel),
+                      getParameters(migModel)),
+             con = con,
+             sep = "\n",
+  )
+  
+  writeLines(c("theta_rate : ", as.character(theta_rate)), con=con, sep ="\n")
   writeLines(c("", "GENETICS:", ""), con=con)
-  write.table(data, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
+  write.table(genetData, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 }
 
