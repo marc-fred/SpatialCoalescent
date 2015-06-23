@@ -50,14 +50,15 @@ Kmodel <- new("KModel", models = list(mk1, mk2))
 
 prior5 <- Function(fun = uniform, param = list(min = 2, max = 10))
 prior6 <- Function(fun = uniform, param = list(min = 10, max = 50))
-mr1 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior5, prior6)))
+mr1    <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior5, prior6)))
 
 Rmodel <- new("RModel", models = list(mr1))
 
 prior7 <- Function(fun = uniform, param = list(min = 0, max = 1000))
 prior8 <- Function(fun = uniform, param = list(min = 0, max = 10000))
-migFun <- new("Function", name = "Gaussian", fun = gaussianDisp, param = list(mean=prior7, sd = prior8 ))
-migModel <- new("MigModel", varName = "Distances", varEnv = distances, fun = migFun)
+mig1   <- model(varEnv = distances, fun = Function(fun = gaussianDisp, param = list(prior7, prior8)))
+
+migModel <- new("MigModel", models = list(mig1))
 
 K_m <- applyModel(Kmodel)
 R_m <- applyModel(Rmodel)
