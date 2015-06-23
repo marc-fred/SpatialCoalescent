@@ -1,38 +1,4 @@
 
-
-simulateSpatialCoalescent <- function(theta_sigma, theta_Y_r, theta_Y_k, theta_rate, envMatrix, geoDistMatrix, nbLocus, localizationData,steps){
-  # Simulate a genetic dataset given parameters
-  #
-  # Args :
-  #
-  #
-  #
-  # Returns : 
-  #   a matrix of genetic values for each individual (rows) at each locus (column)
-  
-  kMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_k)
-  rMatrix <- constructEnvironmentalDemographicMatrix(env = envMatrix, param = theta_Y_r)
-  migMatrix <- constructMigrationMatrix(dist = geoDistMatrix , param = theta_sigma)
-  
-  # Initialize the demographic matrix (by default one fondator in topleft)
-  demographicMatrix <- createInitialDemographicsLandscape(envMatrix)
-  
-  # Simulate demography
-  history_l <- demographicSimulation(numberOfGenerations = 10, demographicMatrix, kMatrix, rMatrix, migMatrix)
-  demoHistory_l <- history_l$demoHistory
-  migHistory_l <- history_l$migHistory
-  
-  genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l, 
-                                    demoHistory_l = demoHistory_l, 
-                                    localizationData = localizationData, 
-                                    nbLocus = nbLocus, 
-                                    theta_rate = theta_rate,
-                                    steps = steps)
-  
-  return(genetValues)
-
-}
- 
 spatialCoalescenceForMultipleLoci <- function(migHistory_l, demoHistory_l, localizationData, nbLocus, theta_rate, steps){
   # Repeat coalescence simulation, once for each locus
   #
