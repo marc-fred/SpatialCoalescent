@@ -82,8 +82,6 @@ genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = migHistory_l,
 x <- 1
 dataFileName = paste("genetics_", x , ".txt", sep="")
 writeDataOutputInFile(Kmodel, Rmodel, MigModel, theta_rate, genetData = genetValues, file = dataFileName)
-  
-)
 
 
 
