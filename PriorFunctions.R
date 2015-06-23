@@ -1,4 +1,4 @@
-uniform <- function(n, min, max){
+uniform <- function(x, min, max){
   # A uniform function used to sample parameters in the specified prior distribution
   # 
   # Args:
@@ -8,10 +8,10 @@ uniform <- function(n, min, max){
   #
   # Returns:
   #   a random sample
-  return(runif(n, min, max))
+  return(runif(n=x, min, max))
 }
 
-beta <- function(n, shape1, shape2){
+beta <- function(x, shape1, shape2){
   # random generation for the beta distribution 
   # 
   # Args:
@@ -24,7 +24,7 @@ beta <- function(n, shape1, shape2){
   return(rbeta(n, shape1, shape2))
 }
 
-normal <- function(n, mean, sd){
+normal <- function(x, mean, sd){
   # random generation for the normal distribution 
   # 
   # Args:
@@ -37,7 +37,7 @@ normal <- function(n, mean, sd){
   return(rnorm(n, mean, sd))
 }
 
-gamma <- function(n, shape){
+gamma <- function(x, shape){
   # random generation for the gamma distribution 
   # 
   # Args:
