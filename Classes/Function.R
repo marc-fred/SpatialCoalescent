@@ -15,27 +15,28 @@ setClass("Function",
 )
 
 Function <- function(name, fun = linearTwoParameters, param){
-  # if param is a list of numeric, it's ok
-  # if param is a list of Function, apply the function as a prior
   
   if(missing(name)) name <- deparse(substitute(fun))
   if(missing(fun)) stop("argument fun is missing")
   
+  # if param is a list of numeric, it's ok
+  # if param is a list of Function, apply the function as a prior
   areAllParamNum <- all(vapply(X = param, FUN = is.numeric, FUN.VALUE = c(FALSE)))
   areAllParamFun <- all(vapply(X = param, FUN = function(x){class(x) == "Function"}, FUN.VALUE = c(FALSE)))
   
-  if(areAllParamFun){
+  if(areAllParamNum){
+    # do nothing for param
+    new("Function", name = name, fun = fun, param = param )
+    
+  }else if(areAllParamFun){
+    # perform sampling in the passed Functions acting as priors
     paramNames <- names(formals(fun))[-1]
     sampledParam <- mapply(FUN = function(paramNames, param){ applyFunction(object = param, xval = 1)} ,
-                    paramNames,
-                    param,
-                    USE.NAMES = TRUE,
-                    SIMPLIFY = FALSE)
-    new("Function", name = name, fun = fun, param = sampledParam )
-    
-  }else if(areAllParamNum){
-    param <- param
-    new("Function", name = name, fun = fun, param = param )
+                           paramNames,
+                           param,
+                           USE.NAMES = TRUE,
+                           SIMPLIFY = FALSE)
+    new("Function", name = name, fun = fun, param = sampledParam)
     
   }else if(!areAllParamFun && !areAllParamNum){
     stop("In Function Class, param argument has to be a list of numeric or a list of Function class")

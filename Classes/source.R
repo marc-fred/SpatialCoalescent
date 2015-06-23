@@ -32,29 +32,35 @@ nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
 # Model Implementation
+
 pluie <- new("Environment", values= as.matrix(rasterE1))
 temp <- new("Environment", values= as.matrix(rasterE2))
+distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
 myPlot(pluie)
 
-mk1 <- new("Model", varName = "Pluviométrie",  varEnv = pluie, fun = new("Function",
-                                                                         name = "Linear", 
-                                                                         fun = linearTwoParameters, 
-                                                                         param = list(f_0 = 0, slope = 1)))
+prior1 <- Function(fun = uniform, param = list(min = 10, max = 50))
+prior2 <- Function(fun = uniform, param = list(min = 5, max = 10))
+mk1 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior1, prior2)))
 
-mk2 <- new("Model", varName = "Température",  varEnv = temp, fun = new("Function",
-                                                                       name = "Linear", 
-                                                                       fun = linearTwoParameters, 
-                                                                       param = list(f_0 = 0, slope = 2)))
+prior3 <- Function(fun = uniform, param = list(min = 100, max = 500))
+prior4 <- Function(fun = uniform, param = list(min = 50, max = 60))
+mk2 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior3, prior4)))
 
 Kmodel <- new("KModel", models = list(mk1, mk2))
-K_m <- applyModel(Kmodel)
 
-Rmodel <- new("RModel", models = list(mk1, mk2))
-R_m <- applyModel(Rmodel)
+prior5 <- Function(fun = uniform, param = list(min = 2, max = 10))
+prior6 <- Function(fun = uniform, param = list(min = 10, max = 50))
+mr1 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior5, prior6)))
 
-distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
-migFun <- new("Function", name = "Gaussian", fun = gaussianDisp, param = list(mean=0, sd = 250 ))
+Rmodel <- new("RModel", models = list(mr1))
+
+prior7 <- Function(fun = uniform, param = list(min = 0, max = 1000))
+prior8 <- Function(fun = uniform, param = list(min = 0, max = 10000))
+migFun <- new("Function", name = "Gaussian", fun = gaussianDisp, param = list(mean=prior7, sd = prior8 ))
 migModel <- new("MigModel", varName = "Distances", varEnv = distances, fun = migFun)
+
+K_m <- applyModel(Kmodel)
+R_m <- applyModel(Rmodel)
 M_m <- applyModel(migModel)
 
 demoInit <- createInitialDemographicsLandscape(K_m)
