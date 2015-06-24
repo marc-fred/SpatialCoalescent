@@ -35,8 +35,7 @@ dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
 nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
-mclapply(X = 1:10, FUN = function(x){
-  set.seed(x)
+parallelWrapper(expr= expression({
   
   # Model Implementation
   
@@ -80,7 +79,7 @@ mclapply(X = 1:10, FUN = function(x){
                                    kMatrix = K_m, 
                                    rMatrix = R_m,
                                    migMatrix = M_m)
-
+  
   genetValues <- spatialCoalescenceForMultipleLoci(migHistory_l = history$migHistory,
                                                    demoHistory_l = history$demoHistory, 
                                                    localizationData = localizationData, 
@@ -102,3 +101,4 @@ mclapply(X = 1:10, FUN = function(x){
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 })
+)

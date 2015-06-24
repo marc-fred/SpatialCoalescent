@@ -1,16 +1,16 @@
 parallelWrapper <- function(expr){
-  local({
-    
-    f <- fifo(tempfile(), open="w+b", blocking=T)
-    if (inherits(parallel:::mcfork(), "masterProcess")){
-      progress <- 0.0
-      while (progress < 1 && !isIncomplete(f)) {
-        msg <- readBin(f, "double")
-        progress <- progress + as.numeric(msg)
-        cat(sprintf("Progress: %.2f%%\n", progress * 100))
-      }
-      parallel:::mcexit()
-    }
+#   local({
+#     
+#     f <- fifo(tempfile(), open="w+b", blocking=T)
+#     if (inherits(parallel:::mcfork(), "masterProcess")){
+#       progress <- 0.0
+#       while (progress < 1 && !isIncomplete(f)) {
+#         msg <- readBin(f, "double")
+#         progress <- progress + as.numeric(msg)
+#         cat(sprintf("Progress: %.2f%%\n", progress * 100))
+#       }
+#       parallel:::mcexit()
+#     }
     
     mclapply(X = 1:2, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
@@ -20,15 +20,14 @@ parallelWrapper <- function(expr){
         },
         error = function(e){
           ename = paste("stderr_", x , ".txt", sep="")
-          con <- file(paste("Simulations/", ename, sep=""), open = "w")
-          sink(file = con, type = "message", append =TRUE)
-          message("Here's the original warning message:")
+          con <- file(paste(getwd(),"/Simulations/", ename, sep=""), open = "w")
+          write("Here's the original warning message:", file=con)
           write(paste(e), file=con, append=TRUE)
         }
       )
     })
-  })
-  cat("Done\n")
+#   })
+#   cat("Done\n")
 }
 
 writeDataOutputInFile <- function(Kmodel, Rmodel, MigModel, theta_rate, genetData, file){
@@ -76,7 +75,7 @@ writeErrorDataOutputFile <- function(cond, x,Kmodel, Rmodel, MigModel, theta_rat
   writeLines(c("theta_rate : ", as.character(theta_rate)), con=con, sep ="\n")
   
   message("ERROR DURING EXECUTION:\n")
-  write(cond), file=con, append=TRUE)
+  write(cond, file=con, append=TRUE)
 }
 
 readGeneticDataFiles <- function(){
@@ -350,43 +349,4 @@ myprint <- function(m) {
   rl = lapply(X = m, FUN = function(X) raster(X))
   d <- stack(rl)
   spplot(d)
-}
-
-parallelWrapper <- function(expr, numJobs, cores = 2, ...) {
-  local({
-    # open a connection to a temporary file : pipe between master process and child
-    f <- fifo(tempfile(), open="w+b", blocking=T)
-    if (inherits(parallel:::mcfork(), "masterProcess")) {
-      # Child
-      progress <- 0.0
-      while (progress < 1 && !isIncomplete(f)) {
-        msg <- readBin(f, "double")
-        progress <- progress + as.numeric(msg)
-        # send a message in C-style
-        cat(sprintf("Progress: %.2f%%\n", progress * 100))
-      } 
-      # close the current child process, informing master process
-      parallel:::mcexit()
-    }
-    
-    mclapply(X = 1:numJobs, FUN = function(x, ...){ 
-      set.seed(x)
-      tryCatch(
-        expr = {
-          expr
-        },
-        error = function(cond) {
-          # Write error
-          writeErrorDataOutputFile(cond, x, theta_sigma, theta_Y_k, theta_Y_r,theta_rate)
-        },
-        finally={
-          # Send progress update
-          writeBin(1/numJobs, f)
-        })
-    }, ...,
-    mc.cores = cores,
-    mc.preschedule = TRUE)
-    
-  })
-  cat("Simulations Done\n")
 }
