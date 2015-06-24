@@ -1,3 +1,36 @@
+parallelWrapper <- function(expr){
+  local({
+    
+    f <- fifo(tempfile(), open="w+b", blocking=T)
+    if (inherits(parallel:::mcfork(), "masterProcess")){
+      progress <- 0.0
+      while (progress < 1 && !isIncomplete(f)) {
+        msg <- readBin(f, "double")
+        progress <- progress + as.numeric(msg)
+        cat(sprintf("Progress: %.2f%%\n", progress * 100))
+      }
+      parallel:::mcexit()
+    }
+    
+    mclapply(X = 1:2, mc.cores= detectCores(), FUN= function(x){
+      set.seed(x)
+      tryCatch(
+        expr = {
+          eval(expr)
+        },
+        error = function(e){
+          ename = paste("stderr_", x , ".txt", sep="")
+          con <- file(paste("Simulations/", ename, sep=""), open = "w")
+          sink(file = con, type = "message", append =TRUE)
+          message("Here's the original warning message:")
+          write(paste(e), file=con, append=TRUE)
+        }
+      )
+    })
+  })
+  cat("Done\n")
+}
+
 writeDataOutputInFile <- function(Kmodel, Rmodel, MigModel, theta_rate, genetData, file){
   # Writes arguments value and genetic data in file
   #
