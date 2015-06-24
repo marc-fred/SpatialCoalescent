@@ -1,4 +1,4 @@
-gaussian <- function(x, sigma){
+gaussianDisp <- function(x, mean, sd){
   # Computes a value for kernel dispersion using a gaussian model, i.e. a simple normal density distribution (sigma, mean=0)
   #
   # Args: 
@@ -7,7 +7,7 @@ gaussian <- function(x, sigma){
   #
   # Returns:
   #   The value of dispersion kernel for x
-  return(dnorm(x, mean = 0, sd = sigma, log = FALSE))
+  return(dnorm(x, mean = mean, sd = sd, log = FALSE))
 }
 
 
@@ -32,7 +32,8 @@ distanceMatrixFromRaster <- function(object){
   return(dist)
 }
 
-constructMigrationMatrix<- function(dist, param){
+
+migrationMatrixConstructor <- function(...){
   # Computes a migration matrix given a distance matrix, gaussian kernel
   #
   # Args : 
@@ -41,8 +42,7 @@ constructMigrationMatrix<- function(dist, param){
   #
   # Returns :
   #   A migration matrix, with all rows summing to 1
-  kernel <- apply(dist, c(1,2), gaussian, sigma = param)
+  kernel <- demoEnvironmentalVariableConstructor(...)
   migrationRates <- kernel/rowSums(kernel)
   return(migrationRates)
 }
-
