@@ -12,7 +12,7 @@ parallelWrapper <- function(expr){
       parallel:::mcexit()
     }
     
-    mclapply(X = 1:2, mc.cores= detectCores(), FUN= function(x){
+    mclapply(X = 1:10, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
       tryCatch(
         expr = {
@@ -23,6 +23,10 @@ parallelWrapper <- function(expr){
           con <- file(paste(getwd(),"/Simulations/", ename, sep=""), open = "w")
           write("Here's the original warning message:", file=con)
           write(paste(e), file=con, append=TRUE)
+        },
+        finally = {
+          # Send progress update
+          writeBin(1/numJobs, f)
         }
       )
     })
