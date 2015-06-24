@@ -1,16 +1,16 @@
 parallelWrapper <- function(expr){
-#   local({
-#     
-#     f <- fifo(tempfile(), open="w+b", blocking=T)
-#     if (inherits(parallel:::mcfork(), "masterProcess")){
-#       progress <- 0.0
-#       while (progress < 1 && !isIncomplete(f)) {
-#         msg <- readBin(f, "double")
-#         progress <- progress + as.numeric(msg)
-#         cat(sprintf("Progress: %.2f%%\n", progress * 100))
-#       }
-#       parallel:::mcexit()
-#     }
+  local({
+    
+    f <- fifo(tempfile(), open="w+b", blocking=T)
+    if (inherits(parallel:::mcfork(), "masterProcess")){
+      progress <- 0.0
+      while (progress < 1 && !isIncomplete(f)) {
+        msg <- readBin(f, "double")
+        progress <- progress + as.numeric(msg)
+        cat(sprintf("Progress: %.2f%%\n", progress * 100))
+      }
+      parallel:::mcexit()
+    }
     
     mclapply(X = 1:2, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
@@ -26,8 +26,8 @@ parallelWrapper <- function(expr){
         }
       )
     })
-#   })
-#   cat("Done\n")
+  })
+  cat("Done\n")
 }
 
 writeDataOutputInFile <- function(Kmodel, Rmodel, MigModel, theta_rate, genetData, file){
