@@ -12,7 +12,8 @@ parallelWrapper <- function(expr){
       parallel:::mcexit()
     }
     
-    mclapply(X = 1:10, mc.cores= detectCores(), FUN= function(x){
+    numJobs <- 10
+    mclapply(X = 1:numJobs, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
       tryCatch(
         expr = {
