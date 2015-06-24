@@ -35,14 +35,14 @@ dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
 nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
+# Prior definition
+pluie <- new("Environment", values= as.matrix(rasterE1))
+temp <- new("Environment", values= as.matrix(rasterE2))
+distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
+
 parallelWrapper(expr= expression({
   
   # Model Implementation
-  
-  pluie <- new("Environment", values= as.matrix(rasterE1))
-  temp <- new("Environment", values= as.matrix(rasterE2))
-  distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
-  
   prior1 <- Function(fun = uniform, param = list(min = 10, max = 50))
   prior2 <- Function(fun = uniform, param = list(min = 5, max = 10))
   mk1 <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior1, prior2)))
@@ -56,13 +56,11 @@ parallelWrapper(expr= expression({
   prior5 <- Function(fun = uniform, param = list(min = 2, max = 10))
   prior6 <- Function(fun = uniform, param = list(min = 10, max = 50))
   mr1    <- model(varEnv = pluie, fun = Function(fun = linearTwoParameters, param = list(prior5, prior6)))
-  
   Rmodel <- new("RModel", models = list(mr1))
   
   prior7 <- Function(fun = uniform, param = list(min = 0, max = 1000))
   prior8 <- Function(fun = uniform, param = list(min = 0, max = 10000))
   mig1   <- model(varEnv = distances, fun = Function(fun = gaussianDisp, param = list(prior7, prior8)))
-  
   migModel <- new("MigModel", models = list(mig1))
   
   theta_rate = runif(n = nbLocus, min=0.1, max = 0.5)
@@ -71,8 +69,8 @@ parallelWrapper(expr= expression({
   K_m <- applyModel(Kmodel)
   R_m <- applyModel(Rmodel)
   M_m <- applyModel(migModel)
-  demoInit <- createInitialDemographicsLandscape(K_m)
   
+  demoInit <- createInitialDemographicsLandscape(K_m)
   
   history <- demographicSimulation(numberOfGenerations = 20,
                                    demographicMatrix = demoInit, 
