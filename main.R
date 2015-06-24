@@ -1,3 +1,4 @@
+rm(list = ls())
 # setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
 setwd("/home/arnaudb/Documents/SpatialCoalescent")
 library(methods)
@@ -34,7 +35,7 @@ dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
 nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
 
-mclapply(X = 1:10, FUN = function(x, mc.preschedule = FALSE, mc.cores=2){
+mclapply(X = 1:10, FUN = function(x){
   set.seed(x)
   
   # Model Implementation
@@ -66,12 +67,12 @@ mclapply(X = 1:10, FUN = function(x, mc.preschedule = FALSE, mc.cores=2){
   migModel <- new("MigModel", models = list(mig1))
   
   theta_rate = runif(n = nbLocus, min=0.1, max = 0.5)
-  demoInit <- createInitialDemographicsLandscape(K_m)
   
   # Simulation
   K_m <- applyModel(Kmodel)
   R_m <- applyModel(Rmodel)
   M_m <- applyModel(migModel)
+  demoInit <- createInitialDemographicsLandscape(K_m)
   
   
   history <- demographicSimulation(numberOfGenerations = 20,
@@ -101,5 +102,3 @@ mclapply(X = 1:10, FUN = function(x, mc.preschedule = FALSE, mc.cores=2){
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 })
-
-
