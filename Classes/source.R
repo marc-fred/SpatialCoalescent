@@ -1,3 +1,4 @@
+# THS FILE IS A TEST FOR CLASSES
 # setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
 setwd("/home/arnaudb/Documents/SpatialCoalescent")
 library(methods)
