@@ -105,7 +105,7 @@ parallelWrapper(expr= expression({
   theta_rate = theta_rate)
   writeLines(text = param_v, con = con, sep ="")
   
-  writeLines("GENETICS", con=con)
+  writeLines("\nGENETICS\n", con=con)
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
   

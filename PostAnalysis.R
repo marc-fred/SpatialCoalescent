@@ -27,23 +27,34 @@ readGeneticDataFiles <- function(){
   return(allGenetics)
 }
 
-dt <- readGeneticDataFiles()
+genet <- readGeneticDataFiles()
 param <- readParameters()
-dataCoord <- read.table(file = paste(getwd(), "/Simulations/dataCoord.txt", sep = ""),
-                        header = TRUE)
+dataCoord <- read.table(file = paste(getwd(), "/Simulations/dataCoord.txt", sep = ""), header = TRUE)
+dataClusters <- computeGeographicalClustersForSample(dataCoord, nbCl = 4, max.iter = 5, tolerance = 0.1)
+clusters <- dataClusters$cluster
 
-# Pas besoin des clusters
-M <- sapply(dt, modifiedMStatisticsExcoffier2005)
-He <- sapply(dt, expectedMeanHeterozygosity)
-
-# Besoin des clusters
-dataCl <- computeGeographicalClustersForSample(dataCoord, nbCl = 4, max.iter = 5, tolerance = 0.1)
-dtCl <- lapply(dt, FUN = function(x) data.frame(dataCl, x))
-
-mAll <- sapply(X = dtCl, FUN = meanNumberofAllelesByLocusByLocality)
-
-mAll <- meanNumberofAllelesByLocusByLocality(dtCl[[1]])
-
-
-
-
+sumstat <- sapply(
+  X = genet,
+  FUN = function(x, clusters){
+    M <- modifiedMStatisticsExcoffier2005(x)
+    names(M) <- "M"
+    
+    He <- expectedMeanHeterozygosity(x)
+    names(He) <- "He"
+    
+    # Mean number of Alleles
+    nbAlleles <- by(data = x,
+                    INDICES = clusters,
+                    FUN = function(genet){
+                      nbAlleles <- apply(X = genet, MARGIN = 2, FUN = function(x) length(unique(x)))
+                      return(nbAlleles)
+                    }
+    )
+    meanLoci <- sapply(X = nbAlleles, FUN = mean, USE.NAMES = TRUE)
+    names(meanLoci) <- paste("MeanAllelFr.Locality.", names(meanLoci), sep ="")
+    
+    # Make the form
+    sumstat <- c(M,He, meanLoci)
+  },
+  clusters = clusters
+)
