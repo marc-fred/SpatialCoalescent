@@ -4,12 +4,12 @@ readParameters <- function(){
   path <- paste(getwd(), "/Simulations", sep = "")
   allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
   allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
-  allParameters <- lapply(X = allPaths, 
+  allParameters <- lapply(X = allPaths,
                           FUN = function(x) {
                             lines <- readLines(x)
                             skipLine <- which(lines =="MODEL") + 1
                             rowsNum <- which(lines == "GENETICS") - 2 - skipLine
-                            parameters <- read.table(x, skip = skipLine, nrows = rowsNum)
+                            parameters <- read.table(x, row.names =1, skip = skipLine, nrows = rowsNum)
                           })
   return(allParameters)
 }
@@ -27,11 +27,18 @@ readGeneticDataFiles <- function(){
   return(allGenetics)
 }
 
+# Get data
 genet <- readGeneticDataFiles()
-param <- readParameters()
+
+param_l <- readParameters()
+param <- do.call(cbind, param_l )
+colnames(param) <- 1:ncol(param)
+
 dataCoord <- read.table(file = paste(getwd(), "/Simulations/dataCoord.txt", sep = ""), header = TRUE)
 dataClusters <- computeGeographicalClustersForSample(dataCoord, nbCl = 4, max.iter = 5, tolerance = 0.1)
 clusters <- dataClusters$cluster
+
+# Compute sumstats
 
 sumstat <- sapply(
   X = genet,
