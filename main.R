@@ -44,7 +44,7 @@ pluie <- new("Environment", values= as.matrix(rasterE1))
 temp <- new("Environment", values= as.matrix(rasterE2))
 distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
 
-parallelWrapper(expr= expression({
+parallelWrapper(numJobs = 50, expr= expression({
   
   # Model Implementation
   prior1 <- Function(fun = uniform, param = list(min = 10, max = 50))

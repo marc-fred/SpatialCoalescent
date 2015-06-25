@@ -1,4 +1,4 @@
-parallelWrapper <- function(expr){
+parallelWrapper <- function(numJobs, expr){
   local({
     
     f <- fifo(tempfile(), open="w+b", blocking=T)
@@ -12,7 +12,6 @@ parallelWrapper <- function(expr){
       parallel:::mcexit()
     }
     
-    numJobs <- 2
     mclapply(X = 1:numJobs, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
       tryCatch(
