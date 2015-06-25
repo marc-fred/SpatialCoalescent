@@ -1,4 +1,4 @@
-parallelWrapper <- function(expr){
+parallelWrapper <- function(numJobs, expr){
   local({
     
     f <- fifo(tempfile(), open="w+b", blocking=T)
@@ -12,7 +12,6 @@ parallelWrapper <- function(expr){
       parallel:::mcexit()
     }
     
-    numJobs <- 2
     mclapply(X = 1:numJobs, mc.cores= detectCores(), FUN= function(x){
       set.seed(x)
       tryCatch(
@@ -82,21 +81,6 @@ writeErrorDataOutputFile <- function(cond, x,Kmodel, Rmodel, MigModel, theta_rat
   message("ERROR DURING EXECUTION:\n")
   write(cond, file=con, append=TRUE)
 }
-
-readGeneticDataFiles <- function(){
-  path <- paste(getwd(), "/Simulations", sep = "")
-  allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
-  allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
-  allGenetics <- lapply(X = allPaths, FUN = function(x) readGenetics(file = x))
-  return(allGenetics)
-}
-
-readGenetics <- function(file){
-  skipLine <- which(readLines(file)=="GENETICS:")
-  genetics <- read.table(file = file, skip = skipLine)
-  return(genetics)
-}
-
 
 modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){ # mutationMatrix <- genetics[[1]]
   if(LocusInColumns == TRUE){

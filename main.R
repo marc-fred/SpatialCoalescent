@@ -31,6 +31,10 @@ rasterE2 <- raster(x = matrix(data = sample(1:100, 9), ncol = 3),
                    xmn = 40, xmx = 50, ymn = 0, ymx = 10, crs = "+proj=longlat +datum=WGS84")
 
 dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
+# Remember coordinates : top moche
+con <- file(paste( getwd(),"/Simulations/dataCoord.txt", sep=""), open = "wt")
+write.table(dataCoord, file=con, quote = FALSE, row.names = FALSE, col.names = TRUE, append=TRUE)
+close(con)
 
 nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
@@ -40,7 +44,7 @@ pluie <- new("Environment", values= as.matrix(rasterE1))
 temp <- new("Environment", values= as.matrix(rasterE2))
 distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
 
-parallelWrapper(expr= expression({
+parallelWrapper(numJobs = 500, expr= expression({
   
   # Model Implementation
   prior1 <- Function(fun = uniform, param = list(min = 10, max = 50))
@@ -89,14 +93,21 @@ parallelWrapper(expr= expression({
   fileName = paste("genetics_", x , ".txt", sep="")
   dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
   con <- file(paste("Simulations/", fileName, sep=""), open = "w")
-  writeLines(text = "MODEL :\n", con = con)
+  writeLines(text = "MODEL\n", con = con)
   writeLines(text = c(getParameters(Kmodel),
                       getParameters(Rmodel),
                       getParameters(migModel)), con = con, sep = "\n")
+    
+  param_v <- mapply(FUN = function(names, theta_rate){
+    paste("Locus.",names,".MutationRate"," ", theta_rate,"\n", sep ="")
+  },
+  names = 1:length(theta_rate),
+  theta_rate = theta_rate)
+  writeLines(text = param_v, con = con, sep ="")
   
-  writeLines(c("theta_rate : ", as.character(theta_rate)), con=con, sep ="\n")
-  writeLines(c("", "GENETICS:", ""), con=con)
+  writeLines("\nGENETICS\n", con=con)
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
+  
 })
 )
