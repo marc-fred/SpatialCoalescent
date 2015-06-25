@@ -83,21 +83,6 @@ writeErrorDataOutputFile <- function(cond, x,Kmodel, Rmodel, MigModel, theta_rat
   write(cond, file=con, append=TRUE)
 }
 
-readGeneticDataFiles <- function(){
-  path <- paste(getwd(), "/Simulations", sep = "")
-  allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
-  allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
-  allGenetics <- lapply(X = allPaths, FUN = function(x) readGenetics(file = x))
-  return(allGenetics)
-}
-
-readGenetics <- function(file){
-  skipLine <- which(readLines(file)=="GENETICS:")
-  genetics <- read.table(file = file, skip = skipLine)
-  return(genetics)
-}
-
-
 modifiedMStatisticsExcoffier2005 <- function(mutationMatrix, LocusInColumns = TRUE){ # mutationMatrix <- genetics[[1]]
   if(LocusInColumns == TRUE){
     margin <- 2

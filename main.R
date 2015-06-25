@@ -31,6 +31,10 @@ rasterE2 <- raster(x = matrix(data = sample(1:100, 9), ncol = 3),
                    xmn = 40, xmx = 50, ymn = 0, ymx = 10, crs = "+proj=longlat +datum=WGS84")
 
 dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
+# Remember coordinates : top moche
+con <- file(paste( getwd(),"/Simulations/dataCoord.txt", sep=""), open = "wt")
+write.table(dataCoord, file=con, quote = FALSE, row.names = FALSE, col.names = TRUE, append=TRUE)
+close(con)
 
 nbLocus <- 10
 steps <- sample(1:10, size = nbLocus ) 
@@ -99,11 +103,11 @@ parallelWrapper(expr= expression({
   },
   names = 1:length(theta_rate),
   theta_rate = theta_rate)
-  
   writeLines(text = param_v, con = con, sep ="")
   
-  writeLines(c("", "GENETICS", ""), con=con)
+  writeLines("GENETICS", con=con)
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
+  
 })
 )
