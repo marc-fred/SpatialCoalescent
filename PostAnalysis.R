@@ -65,3 +65,9 @@ sumstat <- sapply(
   },
   clusters = clusters
 )
+
+# ABC analysis
+library(abc)
+cv.rej <- cv4abc(param=t(param), sumstat=t(sumstat), nval=5,
+                 tols=c(.1,.2,.3), method="rejection")
+plot(cv.rej)
