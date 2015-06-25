@@ -64,7 +64,7 @@ setMethod(f="getParameters",
           definition = function(object){
             sapply(X = 1:length(object@param),
                    FUN = function(x, object){
-                     paste(object@name, ".", names(object@param)[[x]], " = ", object@param[[x]], sep ="")
+                     paste(object@name, ".", names(object@param)[[x]], " ", object@param[[x]], sep ="")
                    },
                    object = object
                    )

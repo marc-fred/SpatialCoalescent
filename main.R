@@ -89,13 +89,20 @@ parallelWrapper(expr= expression({
   fileName = paste("genetics_", x , ".txt", sep="")
   dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
   con <- file(paste("Simulations/", fileName, sep=""), open = "w")
-  writeLines(text = "MODEL :\n", con = con)
+  writeLines(text = "MODEL\n", con = con)
   writeLines(text = c(getParameters(Kmodel),
                       getParameters(Rmodel),
                       getParameters(migModel)), con = con, sep = "\n")
+    
+  param_v <- mapply(FUN = function(names, theta_rate){
+    paste("Locus.",names,".MutationRate"," ", theta_rate,"\n", sep ="")
+  },
+  names = 1:length(theta_rate),
+  theta_rate = theta_rate)
   
-  writeLines(c("theta_rate : ", as.character(theta_rate)), con=con, sep ="\n")
-  writeLines(c("", "GENETICS:", ""), con=con)
+  writeLines(text = param_v, con = con, sep ="")
+  
+  writeLines(c("", "GENETICS", ""), con=con)
   write.table(genetValues, file=con, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE, append=TRUE)
   close(con)
 })
