@@ -1,6 +1,6 @@
 rm(list = ls())
 # setwd("/home/arno/Documents/These/SpatialCoalescent/Classes")
-setwd("/home/arnaudb/Documents/SpatialCoalescent")
+#setwd("/home/arnaudb/Documents/SpatialCoalescent")
 library(methods)
 library(raster)
 library(parallel)
@@ -32,6 +32,7 @@ rasterE2 <- raster(x = matrix(data = sample(1:100, 9), ncol = 3),
 
 dataCoord <- xyFromCell(rasterE1, sample(1:ncell(rasterE1), 20, replace = TRUE))
 # Remember coordinates : top moche
+dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
 con <- file(paste( getwd(),"/Simulations/dataCoord.txt", sep=""), open = "wt")
 write.table(dataCoord, file=con, quote = FALSE, row.names = FALSE, col.names = TRUE, append=TRUE)
 close(con)
@@ -44,7 +45,7 @@ pluie <- new("Environment", values= as.matrix(rasterE1))
 temp <- new("Environment", values= as.matrix(rasterE2))
 distances <- new("Lattice", values= computeDistanceMatrix(rasterE1))
 
-parallelWrapper(numJobs = 500, expr= expression({
+parallelWrapper(numJobs = 2, expr= expression({
   
   # Model Implementation
   prior1 <- Function(fun = uniform, param = list(min = 10, max = 50))
@@ -91,7 +92,6 @@ parallelWrapper(numJobs = 500, expr= expression({
                                                    rasterLandscape = rasterE1)
   
   fileName = paste("genetics_", x , ".txt", sep="")
-  dir.create(path = paste(getwd(),"/Simulations", sep=""), showWarnings = FALSE)
   con <- file(paste("Simulations/", fileName, sep=""), open = "w")
   writeLines(text = "MODEL\n", con = con)
   writeLines(text = c(getParameters(Kmodel),

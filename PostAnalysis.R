@@ -18,7 +18,7 @@ readGeneticDataFiles <- function(){
   path <- paste(getwd(), "/Simulations", sep = "")
   allFiles <- grep(pattern = "^genetics_\\d*.txt$", x=list.files(path), value = TRUE)
   allPaths <- paste(getwd(), "/Simulations/", allFiles, sep ="")
-  allGenetics <- lapply(X = allPaths, 
+  allGenetics <- lapply(X = allPaths,
                         FUN = function(x){
                           skipLine <- which(readLines(x)=="GENETICS")
                           genetics <- read.table(file = x, skip = skipLine +1)
@@ -70,4 +70,4 @@ sumstat <- sapply(
 library(abc)
 cv.rej <- cv4abc(param=t(param), sumstat=t(sumstat), nval=5,
                  tols=c(.1,.2,.3), method="rejection")
-plot(cv.rej)
+# plot(cv.rej)
